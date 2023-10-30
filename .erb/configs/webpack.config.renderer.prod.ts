@@ -22,7 +22,11 @@ const configuration: webpack.Configuration = {
   devtool: 'source-map',
 
   mode: 'production',
-
+  resolve: {
+    fallback: {
+      fs: false,
+    },
+  },
   target: ['web', 'electron-renderer'],
 
   entry: [path.join(webpackPaths.srcRendererPath, 'index.tsx')],

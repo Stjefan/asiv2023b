@@ -11,9 +11,28 @@
 import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
+import { exposeIpcMainRxStorage } from 'rxdb/plugins/electron';
+import { getRxStorageLoki } from 'rxdb/plugins/storage-lokijs';
+import LokiFsStructuredAdapter from 'lokijs/src/loki-fs-structured-adapter.js';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+
+function setUpCustomExtensions() {
+  if (mainWindow) {
+  mainWindow.webContents.openDevTools();
+  }
+  const storage = getRxStorageLoki({
+    adapter: new LokiFsStructuredAdapter(),
+  });
+
+  exposeIpcMainRxStorage({
+    key: 'main-storage',
+    storage,
+    ipcMain,
+  });
+}
+
 
 class AppUpdater {
   constructor() {
@@ -28,6 +47,7 @@ let mainWindow: BrowserWindow | null = null;
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
+  console.log("More blabla")
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
@@ -78,7 +98,10 @@ const createWindow = async () => {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
+        nodeIntegration: true,
+        contextIsolation: false,
     },
+
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
@@ -128,6 +151,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
+    setUpCustomExtensions()
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.

@@ -24,6 +24,12 @@ const electronHandler = {
   },
 };
 
-contextBridge.exposeInMainWorld('electron', electronHandler);
+// contextBridge.exposeInMainWorld('electron', electronHandler);
+
+(window as any).electronStuff = {
+  ipcRenderer,
+  openFileDialog: () => ipcRenderer.send('open-file-dialog'),
+  selectFile: () => ipcRenderer.send('file-select'),
+};
 
 export type ElectronHandler = typeof electronHandler;
