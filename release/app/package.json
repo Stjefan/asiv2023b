@@ -1,12 +1,11 @@
 {
   "name": "asiv2023b",
-  "version": "5.0.5",
+  "version": "5.0.11",
   "description": "A foundation for scalable desktop apps",
   "license": "MIT",
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://github.com/electron-react-boilerplate"
+    "name": "ASIV2023b",
+    "email": "stefan.scheible@kurz-fischer.com"
   },
   "main": "./dist/main/main.js",
   "scripts": {

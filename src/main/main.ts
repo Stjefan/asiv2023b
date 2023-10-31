@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import { exposeIpcMainRxStorage } from 'rxdb/plugins/electron';
 import { getRxStorageLoki } from 'rxdb/plugins/storage-lokijs';
@@ -49,6 +49,28 @@ ipcMain.on('ipc-example', async (event, arg) => {
   console.log(msgTemplate(arg));
   console.log("More blabla")
   event.reply('ipc-example', msgTemplate('pong'));
+});
+
+ipcMain.on('get-version', (event) => {
+  console.log("Get-Version", app.getVersion())
+  event.reply('current-version', app.getVersion());
+  }
+)
+
+ipcMain.on('open-file-dialog', (event) => {
+  console.log(app.getVersion());
+  dialog
+    .showOpenDialog({
+      properties: ['openDirectory'],
+    })
+    .then((result) => {
+      if (!result.canceled && result.filePaths.length > 0) {
+        event.reply('selected-file', result.filePaths[0]);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 if (process.env.NODE_ENV === 'production') {
