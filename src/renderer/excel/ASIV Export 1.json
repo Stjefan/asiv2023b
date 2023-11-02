@@ -1,0 +1,139 @@
+{
+  "laufendenummer": {
+      "type": "row",
+      "columnIndex": 1,
+      "kommentar": "automatische Eingabe"
+  },
+  "werkteil": {
+      "type": "header",
+      "rowindex": 5,
+      "columnIndex": 3
+  },
+  "werknummer": {
+      "type": "header",
+      "rowindex": 4,
+      "columnIndex": 3
+  },
+  "gebaeude": {
+      "type": "header",
+      "rowindex": 4,
+      "columnIndex": 9
+  },
+  "etage": {
+      "type": "header",
+      "rowindex": 5,
+      "columnIndex": 9
+  },
+  "abteilung": {
+      "type": "header",
+      "rowindex": 4,
+      "columnIndex": 19
+  },
+  "kostenstelle": {
+      "type": "header",
+      "rowindex": 5,
+      "columnIndex": 19
+  },
+  "arbeitsplatznummer": {
+      "type": "row",
+      "columnIndex": 2
+  },
+  "taetigkeitsbeschreibung1": {
+      "type": "row",
+      "columnIndex": 4
+  },
+  "taetigkeitsbeschreibung2": {
+      "type": "multirow",
+      "columnIndex": 4,
+      "subrow": 1
+  },
+  "taetigkeitsbeschreibung3": {
+      "type": "multirow",
+      "columnIndex": 4,
+      "subrow": 2
+  },
+  "schichtmodell": {
+      "type": "row",
+      "columnIndex": 14
+  },
+  "arbeitskraefteproschicht": {
+      "type": "row",
+      "columnIndex": 16
+  },
+  "messort1": {
+      "type": "row",
+      "columnIndex": 17,
+      "kommentar": "gleich Arbeitsort?"
+  },
+  "messort2": {
+      "type": "multirow",
+      "columnIndex": 17,
+      "kommentar": "gleich Arbeitsort?",
+      "subrow": 1
+
+  },
+  "messort3": {
+      "type": "multirow",
+      "columnIndex": 17,
+      "kommentar": "gleich Arbeitsort?",
+      "subrow": 2
+  },
+  "kommentarzeile1": {
+      "type": "row",
+      "columnIndex": 28,
+      "kommentar": "gleich Bemerkungen?"
+  },
+  "kommentarzeile2": {
+      "type": "multirow",
+      "columnIndex": 28,
+      "kommentar": "gleich Bemerkungen?",
+      "subrow": 1
+  },
+  "kommentarzeile3": {
+      "type": "multirow",
+      "columnIndex": 28,
+      "kommentar": "gleich Bemerkungen?",
+      "subrow": 2
+  },
+  "messdatum": {
+      "type": "row",
+      "columnIndex": 21,
+      "kommentar": "gleich Datum Z7S21"
+  },
+  "bearbeiter": {
+      "type": "header",
+      "rowindex": 4,
+      "columnIndex": 25,
+      "kommentar": "manuelle Eingabe"
+  },
+  "aktuellesdatum": {
+      "type": "header",
+      "rowindex": 5,
+      "columnIndex": 25,
+      "kommentar": "???"
+  },
+  "Unterschrift": {
+      "type": "header",
+      "rowindex": 4,
+      "columnIndex": 31,
+      "kommentar": "???"
+  },
+  "lex": {
+      "type": "row",
+      "columnIndex": 23
+  },
+  "lcpeak": {
+      "type": "row",
+      "columnIndex": 25
+  },
+  "genauigkeitsklasse": {
+      "type": "row",
+      "columnIndex": 27,
+      "kommentar": "gleich G?"
+  },
+  "details": {
+      "type": "row",
+      "columnIndex": 34
+  }
+
+}

@@ -1,0 +1,134 @@
+{
+    "laufendenummer": {
+        "type": "row",
+        "columnIndex": 3
+    },
+    "protokolljahr": {
+        "type": "row",
+        "columnIndex": 2
+    },
+    "auftragsnummer": {
+        "type": "row",
+        "columnIndex": 5
+    },
+    "werkteil": {
+        "type": "row",
+        "columnIndex": 7
+    },
+    "werknummer": {
+        "type": "row",
+        "columnIndex": 6
+    },
+    "gebaeude": {
+        "type": "row",
+        "columnIndex": 8
+    },
+    "etage": {
+        "type": "row",
+        "columnIndex": 9
+    },
+    "abteilung": {
+        "type": "row",
+        "columnIndex": 10
+    },
+    "kostenstelle": {
+        "type": "row",
+        "columnIndex": 11
+    },
+    "arbeitsplatznummer": {
+        "type": "row",
+        "columnIndex": 12
+    },
+    "schichtmodell": {
+        "type": "row",
+        "columnIndex": 13
+    },
+    "arbeitskraefteproschicht": {
+        "type": "row",
+        "columnIndex": 14
+    },
+    "taetigkeitsbeschreibung1": {
+        "type": "row",
+        "columnIndex": 15
+    },
+    "taetigkeitsbeschreibung2": {
+        "type": "row",
+        "columnIndex": 16
+    },
+    "taetigkeitsbeschreibung3": {
+        "type": "row",
+        "columnIndex": 17
+    },
+    "messort1": {
+        "type": "row",
+        "columnIndex": 18
+    },
+    "messort2": {
+        "type": "row",
+        "columnIndex": 19
+    },
+    "messort3": {
+        "type": "row",
+        "columnIndex": 20
+    },
+    "kommentarzeile1": {
+        "type": "row",
+        "columnIndex": 21
+    },
+    "kommentarzeile2": {
+        "type": "row",
+        "columnIndex": 22
+    },
+    "kommentarzeile3": {
+        "type": "row",
+        "columnIndex": 23
+    },
+    "messdatum": {
+        "type": "row",
+        "columnIndex": 24
+    },
+    "messgeraet": {
+        "type": "row",
+        "columnIndex": 25
+    },
+    "bearbeiter": {
+        "type": "row",
+        "columnIndex": 26
+    },
+    "lex": {
+        "type": "row",
+        "columnIndex": 27
+    },
+    "beurteilungszeit": {
+        "type": "row",
+        "columnIndex": 28
+    },
+    "lcpeak": {
+        "type": "row",
+        "columnIndex": 29
+    },
+    "genauigkeitsklasse": {
+        "type": "row",
+        "columnIndex": 30
+    },
+    "details": {
+        "type": "row",
+        "columnIndex": 31
+    },
+    "erstellt": {
+        "type": "row",
+        "columnIndex": 33
+    },
+    "geaendert": {
+        "type": "row",
+        "columnIndex": 34
+    },
+    "idDatenbankinternalfdnr": {
+        "type": "row",
+        "columnIndex": 32
+    },
+    "schallpegelmessblatt": {
+        "type": "row",
+        "columnIndex": 4
+    }
+}
