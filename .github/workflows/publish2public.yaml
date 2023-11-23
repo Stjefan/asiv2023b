@@ -1,0 +1,25 @@
+name: Publish Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  copy-release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Release Asset
+      uses: actions/download-artifact@v2
+      with:
+        name: your-artifact-name # This should match the name of your build artifact
+        path: temp
+
+    - name: Upload Release Asset to Public Repository
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
+      with:
+        upload_url: https://api.github.com/repos/your-public-username/your-public-repo/releases/tags/your-release-tag # The release URL for the public repository
+        asset_path: ./temp/your-artifact-name.zip
+        asset_name: your-artifact-name.zip
+        asset_content_type: application/zip
