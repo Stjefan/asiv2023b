@@ -5,7 +5,12 @@ import { RxDatabase } from 'rxdb';
 import { Button } from 'primereact/button';
 
 import React, { useContext, useEffect, useState } from 'react';
-import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
+import {
+  PrimeReactProvider,
+  PrimeReactContext,
+  FilterMatchMode,
+  Filter,
+} from 'primereact/api';
 import icon from '../../assets/icon.svg';
 import './App.css';
 import { generateArbeitsplatz, getDatabase } from './database';
@@ -15,9 +20,28 @@ import 'primereact/resources/primereact.min.css';
 import { TableView } from './table';
 import { TreeView } from './tree';
 import { ConfirmDialog } from 'primereact/confirmdialog';
-import { ImportDialog, EditDialog, DumpDialog } from './dialogs';
+import {
+  ImportDialog,
+  EditDialog,
+  DumpDialog,
+  ShowVersionDialog,
+  MessungenExportDialog,
+  LoadingDialog,
+  DatenbankChangeDialog,
+} from './dialogs';
 
-console.log('GOGO');
+import {
+  locale,
+  addLocale,
+  updateLocaleOption,
+  updateLocaleOptions,
+  localeOption,
+  localeOptions,
+} from 'primereact/api';
+import * as de from './de.json';
+
+addLocale('de', de);
+locale('de');
 
 const storage = getRxStorageIpcRenderer({
   key: 'main-storage',
@@ -27,10 +51,17 @@ const storage = getRxStorageIpcRenderer({
   mode: 'storage',
 });
 
-function Hello() {
+function MainView() {
   const context = useContext(ASIVContext);
-  const { db, setDb } = context;
-  const [databaseFile, setDatabaseFile] = useState(null as string | null);
+  const {
+    db,
+    setDb,
+    setShowVersionDialog,
+    selectFile,
+    databaseFile,
+    loadDatabse,
+    setDatabaseFile,
+  } = context;
 
   useEffect(() => {
     try {
@@ -44,7 +75,8 @@ function Hello() {
           .then((arg) => {
             console.log('Setting database', arg);
             setDb(arg);
-            return 0
+            setDatabaseFile(pathFromLocalStorage);
+            return 0;
           })
           .catch((ex) => console.error(ex));
       }
@@ -52,37 +84,6 @@ function Hello() {
       console.error(ex);
     }
   }, []);
-  async function foo() {
-    console.log(window);
-    if (databaseFile) {
-      const _db = await getDatabase(
-        databaseFile, // 'heroes',
-        // "heroesdb" + dbSuffix, // we add a random timestamp in dev-mode to reset the database on each start
-        storage,
-      );
-      console.log(storage, _db);
-      setDb(_db);
-    }
-  }
-
-  function bar() {
-    window.electron.ipcRenderer.sendMessage('ipc-example', ['from button']);
-  }
-
-  async function insert() {
-    console.log(db);
-    const r = await db.arbeitsplatzmessungen.insert(generateArbeitsplatz());
-    console.log(r);
-  }
-
-  async function read() {
-    db.arbeitsplatzmessungen.find().$.subscribe((heroes: any[]) => {
-      if (!heroes) {
-        return;
-      }
-      console.log('observable fired');
-    });
-  }
 
   function getVersion() {
     console.log(window.electronStuff.getVersion());
@@ -90,45 +91,35 @@ function Hello() {
       'current-version',
       (arg1: any, arg2: any) => {
         console.log('args', arg1, arg2);
-      },
-    );
-  }
-
-  function selectFile() {
-    window.electronStuff.openFileDialog();
-    window.electronStuff.ipcRenderer.once(
-      'selected-file',
-      (event: any, path: string) => {
-        console.log('File path:', path, event);
-        localStorage.setItem('pathDatabase', path);
-        setDatabaseFile(path);
+        setShowVersionDialog(true);
       },
     );
   }
 
   function handleConfirm() {
-    console.log("Hello");
+    console.log('Hello');
   }
 
+  const [showChangeDatabase, setShowChangeDatabase] = useState(false);
   return (
     <div>
-      <h1>ASIV</h1>
+      <h1>Arbeitsplatz-Schallimmissions-Verwaltung</h1>
       <div className="Hello">
         <Button
+          label={databaseFile ? 'Datenbank wechseln' : 'Datenbank erstellen'}
+          onClick={() => setShowChangeDatabase(true)}
+        />
+        {/* <Button
           type="button"
           onClick={selectFile}
           label="Datenbank-Datei wählen"
-        />
-        {databaseFile && <p>Pfad zur Datenbank {databaseFile}</p>}
-        <Button type="button" onClick={foo} label="Datenbank erstellen" />
-        <Button type="button" onClick={bar} label="Click" />
-
-        <Button
-          type="button"
-          onClick={insert}
-          label="Arbeitsplatzmessung anlegen"
-        />
-        <Button type="button" onClick={read} label="Datenbank auslesen" />
+        /> */}
+        {databaseFile && (
+          <p>
+            Pfad zur aktuell ausgewählten Datenbank: <br /> {databaseFile}
+          </p>
+        )}
+        {/* <Button type="button" onClick={loadDatabse} label="Datenbank erstellen" /> */}
         <Button label="Version" type="button" onClick={getVersion} />
         <TableView />
         <TreeView />
@@ -136,6 +127,13 @@ function Hello() {
         <EditDialog header="Eingabe" handleConfirm={handleConfirm} />
         <DumpDialog />
         <ConfirmDialog />
+        <MessungenExportDialog />
+        <ShowVersionDialog />
+        <LoadingDialog />
+        <DatenbankChangeDialog
+          showDialog={showChangeDatabase}
+          setShowDialog={setShowChangeDatabase}
+        />
       </div>
     </div>
   );
@@ -156,11 +154,67 @@ export default function App() {
   const [dialogImport, setDialogImport] = useState<any | null>(null);
   const [dialogExport, setDialogExport] = useState<any | null>(null);
   const [dialogDump, setDialogDump] = useState<any | null>(null);
+  const [showVersionDialog, setShowVersionDialog] = useState<any | null>(null);
+  const [showLoadingDialog, setShowLoadingDialog] = useState<any | null>(null);
 
   const [messungenExport, setMessungenExport] = useState<any[] | null>(null);
 
+  const [databaseFile, setDatabaseFile] = useState(null as string | null);
+
+  function selectFile() {
+    window.electronStuff.openFileDialog();
+    window.electronStuff.ipcRenderer.once(
+      'selected-file',
+      (event: any, path: string) => {
+        console.log('File path:', path, event);
+        localStorage.setItem('pathDatabase', path);
+        setDatabaseFile(path);
+      },
+    );
+  }
+
+  async function loadDatabse() {
+    console.log(window);
+    if (databaseFile) {
+      const _db = await getDatabase(
+        databaseFile, // 'heroes',
+        // "heroesdb" + dbSuffix, // we add a random timestamp in dev-mode to reset the database on each start
+        storage,
+      );
+      console.log(storage, _db);
+      setDb(_db);
+    }
+  }
+
+  const primeReactProviderValue = {
+    filterMatchMode: {
+      text: [
+        FilterMatchMode.STARTS_WITH,
+        FilterMatchMode.CONTAINS,
+        FilterMatchMode.NOT_CONTAINS,
+        FilterMatchMode.ENDS_WITH,
+        FilterMatchMode.EQUALS,
+        FilterMatchMode.NOT_EQUALS,
+      ],
+      numeric: [
+        FilterMatchMode.EQUALS,
+        FilterMatchMode.NOT_EQUALS,
+        FilterMatchMode.LESS_THAN,
+        FilterMatchMode.LESS_THAN_OR_EQUAL_TO,
+        FilterMatchMode.GREATER_THAN,
+        FilterMatchMode.GREATER_THAN_OR_EQUAL_TO,
+      ],
+      date: [
+        FilterMatchMode.DATE_IS,
+        FilterMatchMode.DATE_IS_NOT,
+        FilterMatchMode.DATE_BEFORE,
+        FilterMatchMode.DATE_AFTER,
+      ],
+    },
+  };
+
   return (
-    <PrimeReactProvider>
+    <PrimeReactProvider value={primeReactProviderValue}>
       <ASIVContext.Provider
         value={{
           db,
@@ -177,12 +231,23 @@ export default function App() {
           setDialogDump,
 
           messungenExport,
-          setMessungenExport
+          setMessungenExport,
+
+          showVersionDialog,
+          setShowVersionDialog,
+
+          setShowLoadingDialog,
+          showLoadingDialog,
+
+          databaseFile,
+          loadDatabse,
+          setDatabaseFile,
+          selectFile,
         }}
       >
         <Router>
           <Routes>
-            <Route path="/" element={<Hello />} />
+            <Route path="/" element={<MainView />} />
           </Routes>
         </Router>
       </ASIVContext.Provider>

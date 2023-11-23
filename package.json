@@ -233,7 +233,7 @@
     "publish": {
       "provider": "github",
       "owner": "stjefan",
-      "repo": "asiv2023b"
+      "repo": "asiv-public"
     }
   },
   "collective": {

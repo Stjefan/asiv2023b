@@ -9,9 +9,11 @@ import { Dialog } from 'primereact/dialog';
 import * as MapperImport from './excel/ASIV Import.json';
 
 import { ASIVContext } from './App';
-import { FlexboxForm } from './flexbox';
+import { FlexboxForm } from './createMessung';
 import { blob2uint8, importExcel } from './useExcel';
 import { runExcelExport, runExcelBackup } from './excelReport';
+import { InputText } from 'primereact/inputtext';
+import { InputNumber } from 'primereact/inputnumber';
 
 interface Category {
   name: string;
@@ -111,9 +113,9 @@ export function Dialog1() {
   );
 }
 
-export function FooterDemo({ handleConfirm, ...props }) {
+export function MessungenExportDialog({ handleConfirm, ...props }) {
   const context = useContext(ASIVContext);
-  const { setDialogExport, dialogExport } = context;
+  const { setDialogExport, dialogExport, showLoadingDialog, setShowLoadingDialog } = context;
 
   const { messungenExport } = context;
   const categories = [
@@ -141,12 +143,16 @@ export function FooterDemo({ handleConfirm, ...props }) {
         onClick={() => {
           try {
             if (messungenExport) {
-              runExcelExport(messungenExport, selectedCategory.name);
+              console.log("???")
+              setShowLoadingDialog(true)
+              runExcelExport(messungenExport, selectedCategory.name).catch(err => console.error(err)).finally(_ => setShowLoadingDialog(false))
+              // runExcelExport(messungenExport, selectedCategory.name);
             } else {
               throw new Error('Bitte Messungen in der Tabelle auswählen');
             }
           } finally {
             setDialogExport(false);
+            // setShowLoadingDialog(false)
           }
         }}
         autoFocus
@@ -182,7 +188,7 @@ export function ImportDialog() {
   const footerContent = (
     <div>
       <Button
-        label="Abbrechen"
+        label="Zurück"
         icon="pi pi-times"
         onClick={() => setDialogImport(false)}
         className="p-button-text"
@@ -190,7 +196,7 @@ export function ImportDialog() {
       <Button
         label="Importieren"
         icon="pi pi-check"
-        onClick={() => setDialogImport(false)}
+        onClick={() => runImport()}
         autoFocus
       />
     </div>
@@ -252,20 +258,17 @@ export function ImportDialog() {
           />
           <br />
           <label>Excel-Sheet-Bezeichnung:</label>
-          <input
-            type="text"
-            onChange={(e) => setSheetName(e.target.value)}
+          <InputText
+            onInput={(e) => setSheetName(e.target.value)}
             value={sheetName}
           />
           <br />
           <label>Zeilennummer der ersten Datenzeile:</label>
-          <input
-            type="number"
-            onChange={(e) => setStartLine(e.target.value)}
+          <InputNumber
+            onChange={(e) => setStartLine(e.value)}
             value={startLine}
           />
           <br />
-          <Button label="Import" onClick={runImport} />
         </div>
       </Dialog>
     </div>
@@ -282,12 +285,14 @@ export function EditDialog({ header, handleConfirm, ...props }) {
       <Button
         label="Abbrechen"
         icon="pi pi-times"
+        type="button"
         onClick={() => setDialogEdit(false)}
         className="p-button-text"
       />
       <Button
         label="Speichern"
         icon="pi pi-check"
+        type="submit"
         onClick={() => {
           console.log(flexRef.current);
           console.log(flexRef.current?.submitInForm());
@@ -369,6 +374,112 @@ export function DumpDialog() {
       >
         Der Datenbankinhalt wird als Excel-File exportiert. Dies dient vorallem
         zur Datensicherung. Fortfahren?
+      </Dialog>
+    </div>
+  );
+}
+
+export function ShowVersionDialog() {
+  const context = useContext(ASIVContext);
+
+  const { setShowVersionDialog, showVersionDialog } = context;
+
+  const footerContent = (
+    <div>
+      <Button
+        label="Zurück"
+        icon="pi pi-times"
+        onClick={() => setShowVersionDialog(false)}
+        className="p-button-text"
+      />
+    </div>
+  );
+
+  return (
+    <div className="card flex justify-content-center">
+      <Dialog
+        header="Versionsinformation"
+        visible={showVersionDialog}
+        style={{ width: '50vw' }}
+        onHide={() => setShowVersionDialog(false)}
+        footer={footerContent}
+      >
+        <p>Die vorliegende Version lautet: <br/> N.A.</p>
+      </Dialog>
+    </div>
+  );
+}
+
+export function DatenbankChangeDialog({
+  showDialog,
+  setShowDialog,
+  ...props
+}: any) {
+  const context = useContext(ASIVContext);
+  const {
+    db,
+    setDb,
+    setShowVersionDialog,
+    selectFile,
+    databaseFile,
+    loadDatabse,
+  } = context;
+
+  return (
+    <Dialog
+      header="Datenbank wechseln"
+      visible={showDialog}
+      footer={
+        <>
+          <Button label="Zurück" onClick={() => setShowDialog(false)} />
+        </>
+      }
+      onHide={() => {
+        console.log('Hiding...');
+        setShowDialog(false);
+      }}
+    >
+      <ul>
+        <li>
+          {' '}
+          <p>Ordner auswählen: </p>{' '}
+          <p>
+            Ordner, in dem eine existierende Datenbank liegt oder eine neue Datenbank erstellt werden soll. Die Datenbank besteht aus
+            mehreren Dateien, deshalb empfiehlt sich ein eigener Ordner.
+          </p>{' '}
+          <Button
+            type="button"
+            onClick={selectFile}
+            label="Datenbank-Datei wählen"
+          />
+        </li>
+        <li>
+          <p>Datenbank laden (oder erstellen, falls keine Datenbank im Ordner vorhanden ist){' '}:</p>
+          <Button
+            type="button"
+            onClick={loadDatabse}
+            label="Datenbank erstellen"
+          />
+        </li>
+      </ul>
+    </Dialog>
+  );
+}
+
+export function LoadingDialog() {
+  const context = useContext(ASIVContext);
+
+  const { setShowLoadingDialog, showLoadingDialog } = context;
+  return (
+    <div>
+      <Dialog
+        header="ASIV lädt"
+        visible={showLoadingDialog}
+        closable={false}
+        style={{ width: '50vw' }}
+        onHide={() => setShowLoadingDialog(false)}
+      >
+        Bitte warten
       </Dialog>
     </div>
   );

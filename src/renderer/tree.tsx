@@ -17,7 +17,6 @@ function baseHandlingDocs(
   docs: RxDocument<any>[],
   nodesMap: Map<string, TreeNode>,
 ) {
-  console.log('??');
   const nodes = docs
     .map((i) => i.toJSON())
     .map((i) => ({
@@ -30,12 +29,10 @@ function baseHandlingDocs(
       type: 'arbeitsplatz',
       archiviert: i.archiviert,
     }));
-  console.log('NODES');
+
   for (const n of nodes) {
     nodesMap.set(n.id, n);
   }
-
-  const t: TreeNode = {};
 
   const groupsNested = groupByMultipleKeys(nodes, [
     'werknummer',
@@ -44,15 +41,12 @@ function baseHandlingDocs(
     'abteilung',
     'kostenstelle',
   ]);
-  console.log(groupsNested);
   const array = object2array(groupsNested, null, 0);
 
   // const array = Object.keys(groupsNested).reduce((arr, key) => {
   //   arr.push({ label: key, children: groupsNested[key] });
   //   return arr;
   // }, [] as any[]);
-
-  console.log(array);
 
   // this.nodes = array;
   return array;
@@ -65,7 +59,7 @@ export function TreeView_unsafe() {
 export function TreeView() {
   const [nodes, setNodes] = useState([]);
   const context = useContext(ASIVContext);
-  const { db } = context;
+  const { db, setEdit, setDialogEdit } = context;
 
   function createNode(level = 0): any {
     if (level >= 3) {
@@ -77,16 +71,9 @@ export function TreeView() {
       children: [...Array(3)].map((i) => createNode(level + 1)) as any[],
     } as any;
   }
-  useEffect(() => {
-    if (db) {
-      loadData();
-    } else {
-      console.log('Empty effect');
-    }
-  }, [context]);
 
   function loadData() {
-    console.log('foo', db);
+    console.log('loadData is triggered', db);
     const nodes = db.arbeitsplatzmessungen
       .find({
         selector: {
@@ -94,10 +81,23 @@ export function TreeView() {
         },
       })
       .$.subscribe((docs) => {
-        console.log('docs', docs);
         setNodes(baseHandlingDocs(docs as any[], nodesMap));
       });
+      return nodes
   }
+  useEffect(() => {
+    if (db) {
+      const subscription = loadData();
+      return () => subscription.unsubscribe()
+    } else {
+      console.log('Empty effect');
+    }
+  }, [db]);
+
+  async function getDocById(id) {
+    console.log("Ergebnis", await db.arbeitsplatzmessungen.findOne(id).exec())
+  }
+
 
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
   const [expandedKeys, setExpandedKeys] = useState<TreeExpandedKeysType>({});
@@ -106,10 +106,12 @@ export function TreeView() {
   const nodesMap = new Map<string, TreeNode>();
   const menu = [
     {
-        label: 'View Key',
+        label: 'Bearbeiten',
         icon: 'pi pi-search',
-        command: () => {
-            toast.current.show({ severity: 'success', summary: 'Node Key', detail: selectedNodeKey });
+        command: async () => {
+            setEdit(getDocById(selectedNodeKey));
+            setDialogEdit(true);
+            // toast.current.show({ severity: 'success', summary: 'Node Key', detail: selectedNodeKey });
         }
     },
     // {
@@ -126,7 +128,6 @@ export function TreeView() {
 
   const nodeTemplate = (node: TreeNode, options: TreeNodeTemplateOptions) => {
     let label = <b>{node.label}</b>;
-    console.log(node);
     if (node.data?.archiviert == 1) {
       label = <b className="text-danger"> {node.label}</b>;
     }
@@ -145,7 +146,11 @@ export function TreeView() {
         onToggle={(e) => setExpandedKeys(e.value)}
         contextMenuSelectionKey={selectedNodeKey}
         onContextMenuSelectionChange={(e) => setSelectedNodeKey(e.value as any)}
-        onContextMenu={(e) => cm.current.show(e.originalEvent)}
+        onContextMenu={(e) => {
+          if (e.node.type == "arbeitsplatz") {
+          cm.current.show(e.originalEvent)}
+          }
+        }
         filter
         filterMode="lenient"
         filterPlaceholder="Filter"

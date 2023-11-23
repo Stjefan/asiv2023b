@@ -19,9 +19,6 @@ import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
 function setUpCustomExtensions() {
-  if (mainWindow) {
-  mainWindow.webContents.openDevTools();
-  }
   const storage = getRxStorageLoki({
     adapter: new LokiFsStructuredAdapter(),
   });
@@ -32,7 +29,6 @@ function setUpCustomExtensions() {
     ipcMain,
   });
 }
-
 
 class AppUpdater {
   constructor() {
@@ -47,15 +43,13 @@ let mainWindow: BrowserWindow | null = null;
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
-  console.log("More blabla")
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
 ipcMain.on('get-version', (event) => {
-  console.log("Get-Version", app.getVersion())
+  console.log('Get-Version', app.getVersion());
   event.reply('current-version', app.getVersion());
-  }
-)
+});
 
 ipcMain.on('open-file-dialog', (event) => {
   console.log(app.getVersion());
@@ -120,10 +114,9 @@ const createWindow = async () => {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
-        nodeIntegration: true,
-        contextIsolation: false,
+      nodeIntegration: true,
+      contextIsolation: false,
     },
-
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
@@ -173,7 +166,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
-    setUpCustomExtensions()
+    setUpCustomExtensions();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.

@@ -23,104 +23,107 @@ import * as MapperBackupExport from './excel/ASIV Export Backup.json';
 export function runExcelExport(products: any[], selectedCategory = '') {
   console.log('selectedCategory', selectedCategory);
   async function fetchData() {
-    // Fetch the xlsx file from the public folder
-    // ExportVorlage
-    // MapperExport1
-    const v1 = {
-      vorlage: ExportVorlage,
-      mapper: MapperExport1,
-      name: 'default',
-      groups: [
-        'werknummer',
-        'werkteil',
-        'gebaeude',
-        'etage',
-        'abteilung',
-        'kostenstelle',
-      ],
-    };
-    const vAlternativ = {
-      vorlage: ExportVorlageAlternativ,
-      mapper: MapperExportAlternativ,
-      name: 'default',
-      groups: [
-        'werknummer',
-        'werkteil',
-        'gebaeude',
-        'etage',
-        'abteilung',
-        'kostenstelle',
-      ],
-    };
-    const vAbteilung = {
-      vorlage: ExportVorlageAbteilung,
-      mapper: MapperVorlageAbteilung,
-      name: 'Abteilung',
-      groups: ['werknummer', 'werkteil', 'abteilung'],
-      numberRowsPerElement: 4,
-    };
-    const vKostenstelle = {
-      vorlage: ExportVorlageKostenstelle,
-      mapper: MapperVorlageKostenstelle,
-      name: 'Kostenstelle',
-      groups: ['werknummer', 'werkteil', 'abteilung', 'kostenstelle'],
-    };
-    const vGebaeudeEtage = {
-      vorlage: ExportVorlageGebaeudeEtage,
-      mapper: MapperVorlageGebaeudeEtage,
-      name: 'GebaeudeEtage',
-      groups: ['werknummer', 'werkteil', 'gebaeude', 'etage'],
-    };
+    return new Promise(async (resolve, reject) => {
+      // Fetch the xlsx file from the public folder
+      // ExportVorlage
+      // MapperExport1
+      const v1 = {
+        vorlage: ExportVorlage,
+        mapper: MapperExport1,
+        name: 'default',
+        groups: [
+          'werknummer',
+          'werkteil',
+          'gebaeude',
+          'etage',
+          'abteilung',
+          'kostenstelle',
+        ],
+      };
+      const vAlternativ = {
+        vorlage: ExportVorlageAlternativ,
+        mapper: MapperExportAlternativ,
+        name: 'default',
+        groups: [
+          'werknummer',
+          'werkteil',
+          'gebaeude',
+          'etage',
+          'abteilung',
+          'kostenstelle',
+        ],
+      };
+      const vAbteilung = {
+        vorlage: ExportVorlageAbteilung,
+        mapper: MapperVorlageAbteilung,
+        name: 'Abteilung',
+        groups: ['werknummer', 'werkteil', 'abteilung'],
+        numberRowsPerElement: 4,
+      };
+      const vKostenstelle = {
+        vorlage: ExportVorlageKostenstelle,
+        mapper: MapperVorlageKostenstelle,
+        name: 'Kostenstelle',
+        groups: ['werknummer', 'werkteil', 'abteilung', 'kostenstelle'],
+      };
+      const vGebaeudeEtage = {
+        vorlage: ExportVorlageGebaeudeEtage,
+        mapper: MapperVorlageGebaeudeEtage,
+        name: 'GebaeudeEtage',
+        groups: ['werknummer', 'werkteil', 'gebaeude', 'etage'],
+      };
 
-    const mapping = {
-      Kostenstelle: vKostenstelle,
-      'Gebäude / Etage': vGebaeudeEtage,
-      'Ausgabe SMP (altern.)': vAlternativ,
-      Standard: v1,
-      Abteilung: vAbteilung,
-    };
+      const mapping = {
+        Kostenstelle: vKostenstelle,
+        'Gebäude / Etage': vGebaeudeEtage,
+        'Ausgabe SMP (altern.)': vAlternativ,
+        Standard: v1,
+        Abteilung: vAbteilung,
+      };
 
-    const v = mapping[selectedCategory]; // vAbteilung;
-    if (!v) throw new Error('Invalid category');
-    const response = await fetch(v.vorlage.default);
-    const blob = await response.blob();
+      const v = mapping[selectedCategory]; // vAbteilung;
+      if (!v) reject(new Error('Invalid category'));
+      const response = await fetch(v.vorlage.default);
+      const blob = await response.blob();
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const data = new Uint8Array(e.target!.result as any);
-      console.log(data);
-      // const workbook = XLSX.read(data, { type: 'array' });
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const data = new Uint8Array(e.target!.result as any);
+        console.log(data);
+        // const workbook = XLSX.read(data, { type: 'array' });
 
-      // // Assuming the data is on the first sheet, adjust as needed
-      // const worksheetName = workbook.SheetNames[0];
-      // const worksheet = workbook.Sheets[worksheetName];
+        // // Assuming the data is on the first sheet, adjust as needed
+        // const worksheetName = workbook.SheetNames[0];
+        // const worksheet = workbook.Sheets[worksheetName];
 
-      // // Convert the worksheet to JSON
-      // const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        // // Convert the worksheet to JSON
+        // const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-      // setData(jsonData);
-      console.log(products);
-      const groups = groupDataForExcel(
-        // [   ...products.filter((_, idx) => idx <= 2),
-        //   ...products.filter((_, idx) => idx <= 3),]
-        products,
-        v.groups,
-      );
-      console.log(groups);
-      saveAs(
-        await exportExcelGrouped(
-          data,
-          groups,
-          v.mapper,
-          v.numberRowsPerElement ?? 3,
-        ),
-        `export-nach-vorlage-${v.name}.xlsx`,
-      );
-    };
-    reader.readAsArrayBuffer(blob);
+        // setData(jsonData);
+        console.log(products);
+        const groups = groupDataForExcel(
+          // [   ...products.filter((_, idx) => idx <= 2),
+          //   ...products.filter((_, idx) => idx <= 3),]
+          products,
+          v.groups,
+        );
+        console.log(groups);
+        await saveAs(
+          await exportExcelGrouped(
+            data,
+            groups,
+            v.mapper,
+            v.numberRowsPerElement ?? 3,
+          ),
+          `export-nach-vorlage-${v.name}.xlsx`,
+        );
+        resolve(0);
+      };
+      reader.readAsArrayBuffer(blob);
+    });
   }
 
-  fetchData();
+  return fetchData();
 }
 
 export function runExcelBackup(products: any[]) {

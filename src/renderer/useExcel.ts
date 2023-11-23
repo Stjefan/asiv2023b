@@ -183,7 +183,7 @@ export async function exportExcelGrouped(
       console.log('Copy style from template row');
       for (const targetRow of arrayOfRowNumbers) {
         if (targetRow == 10) continue; // Skip Line 10, as its already formatted
-        console.log(targetRow);
+        // console.log(targetRow);
         for (const i of Array.from(
           { length: numberRowsPerElement },
           (_, index) => index,
@@ -268,7 +268,7 @@ export async function exportExcelGrouped(
             }
 
             if (m.type == 'multirow') {
-              console.log(m);
+              // console.log(m);
               worksheet.getCell(
                 arrayOfRowNumbers[i] + m.subrow,
                 m.columnIndex,

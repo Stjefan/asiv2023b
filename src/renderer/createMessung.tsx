@@ -14,10 +14,19 @@ import { Toast } from 'primereact/toast';
 import { v4 as uuid } from 'uuid';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
+import { InputNumber } from 'primereact/inputnumber';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { ASIVContext } from './App';
 import { generateArbeitsplatz, RxHeroDocumentType } from './database';
 
+
+import { mixed } from './localDE';
+
+
+Yup.setLocale({
+  mixed
+})
 interface KufiInputProps {
   label: string;
   name: string;
@@ -45,7 +54,7 @@ function Textfield({
         className="col-2"
         dangerouslySetInnerHTML={{ __html: groupLabel }}
       />
-      <input className="col-2" {...props} />
+      <InputText className="col-2"  {...props} />
       <div className="col-2">
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </div>
@@ -69,7 +78,8 @@ function Numberfield({
         className="col-2"
         dangerouslySetInnerHTML={{ __html: groupLabel }}
       />
-      <input {...props} type="number" className="col-2" />
+      <InputNumber {...props} className="col-2"/>
+      {/* <input {...props} type="number" className="col-2" /> */}
       <div className="col-2">
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </div>
@@ -78,6 +88,22 @@ function Numberfield({
   );
 }
 
+function NumberfieldV2({label, groupLabel, error, bemerkung, setFieldValue, name, ...props}: any) {
+  return <div className="row">
+  {' '}
+  <label className="col-2">{label}</label>
+  <label
+    className="col-2"
+    dangerouslySetInnerHTML={{ __html: groupLabel }}
+  />
+  <InputNumber value={props.value} onChange={event => setFieldValue(name, event.value)} name={name} className="col-2"/>
+  {/* <input {...props} type="number" className="col-2" /> */}
+  <div className="col-2">
+    {error && <div style={{ color: 'red' }}>{error}</div>}
+  </div>
+  <div className="col-4">{bemerkung}</div>
+</div>
+}
 function DropDownField({
   label,
   options,
@@ -149,11 +175,12 @@ function createField(i: any, formik: any, label1: string | null = null) {
   }
   if (i.type == 'numeric') {
     return (
-      <Numberfield
+      <NumberfieldV2
         key={i.label}
         value={(formik.values as any)[i.name]}
         label={label1 || i.label}
         name={i.name}
+        setFieldValue={formik.setFieldValue}
         bemerkung={i.bemerkung}
         onChange={formik.handleChange}
         onBlur={formik.handleBlur}
@@ -365,11 +392,11 @@ export const FlexboxForm = forwardRef((props, ref) => {
     },
   ];
   const f = (arg: any) => {
-    if (arg.type == 'text') {
-      return Yup.string().required('Required');
+    if (arg.type === 'text') {
+      return Yup.string().required();
     }
-    if (arg.type == 'numeric') {
-      return Yup.number().required('Required');
+    if (arg.type === 'numeric') {
+      return Yup.number().required();
     }
   };
 
@@ -456,7 +483,7 @@ export const FlexboxForm = forwardRef((props, ref) => {
                   severity: 'success',
                   summary: 'Erfolg',
                   detail:
-                    'Bisherige Messung archiviert und nue Messung angelegt',
+                    'Bisherige Messung archiviert und neue Messung angelegt',
                   life: 3000,
                 });
               },
@@ -484,7 +511,7 @@ export const FlexboxForm = forwardRef((props, ref) => {
     },
   });
 
-  function baz() {
+  function resetData() {
     const a = generateArbeitsplatz();
     if (edit) {
       formik.setValues({
@@ -505,18 +532,20 @@ export const FlexboxForm = forwardRef((props, ref) => {
   return (
     <div>
       <Toast ref={toast} />
-      <Button onClick={baz} label="Eingabe zurücksetzen" />
-      {fields.map((i) => {
-        if (i.type == 'group') {
-          return i.fields.map((ii, index) => {
-            if (index == 0) {
-              return createField(ii, formik, i.label);
-            }
-            return createField(ii, formik, ' ');
-          });
-        }
-        return createField(i, formik);
-      })}
+      <Button onClick={resetData} label="Eingabe zurücksetzen" />
+      <div className="container">
+        {fields.map((i) => {
+          if (i.type == 'group') {
+            return i.fields.map((ii, index) => {
+              if (index == 0) {
+                return createField(ii, formik, i.label);
+              }
+              return createField(ii, formik, ' ');
+            });
+          }
+          return createField(i, formik);
+        })}
+      </div>
       <form onSubmit={formik.handleSubmit} ref={formRef}>
         <br />
         {/* <button type="submit">Submit1</button>

@@ -3,3 +3,12 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 
+ .container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px; /* gap between rows and columns */
+}
+
+.row {
+  display: contents;
+}
