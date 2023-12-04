@@ -14,6 +14,8 @@ import { blob2uint8, importExcel } from './useExcel';
 import { runExcelExport, runExcelBackup } from './excelReport';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { Calendar } from 'primereact/calendar';
 
 interface Category {
   name: string;
@@ -49,7 +51,20 @@ export function DynamicDemo({
           );
         })}
       </div>
+      <div className="flex flex-column gap-2">
+      <InputText placeholder='Bearbeiter' aria-describedby="username-help"/>
+      <small id="username-help">
+        Eintragener Name des Bearbeiters
+    </small>
+      </div>
+      <div className="flex flex-column gap-2">
+    <Calendar aria-describedby="username-help" placeholder='Datum'/>
+    <small id="username-help">
+       Im Datumsfeld in der Vorlage eingetragener Wert.
+    </small>
     </div>
+    </div>
+
   );
 }
 
@@ -328,7 +343,8 @@ export function EditDialog({ header, handleConfirm, ...props }) {
 export function DumpDialog() {
   const context = useContext(ASIVContext);
 
-  const { setDialogDump, dialogDump, db } = context;
+  const { setDialogDump, dialogDump, db,  setShowLoadingDialog, showLoadingDialog } = context;
+
 
   const footerContent = (
     <div>
@@ -355,7 +371,8 @@ export function DumpDialog() {
               };
             },
           );
-          runExcelBackup(rows);
+          setShowLoadingDialog(true)
+          runExcelBackup(rows).catch(ex => console.error(ex)).finally(() => setShowLoadingDialog(false));
           setDialogDump(false);
         }}
         autoFocus
@@ -404,7 +421,8 @@ export function ShowVersionDialog() {
         onHide={() => setShowVersionDialog(false)}
         footer={footerContent}
       >
-        <p>Die vorliegende Version lautet: <br/> N.A.</p>
+        <p>Die vorliegende Version lautet:</p>
+        <p>{process.env.npm_package_version}</p>
       </Dialog>
     </div>
   );
@@ -466,6 +484,7 @@ export function DatenbankChangeDialog({
   );
 }
 
+
 export function LoadingDialog() {
   const context = useContext(ASIVContext);
 
@@ -479,7 +498,7 @@ export function LoadingDialog() {
         style={{ width: '50vw' }}
         onHide={() => setShowLoadingDialog(false)}
       >
-        Bitte warten
+        <ProgressSpinner />
       </Dialog>
     </div>
   );

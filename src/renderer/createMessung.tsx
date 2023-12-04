@@ -18,7 +18,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { confirmDialog } from 'primereact/confirmdialog';
 import { ASIVContext } from './App';
-import { generateArbeitsplatz, RxHeroDocumentType } from './database';
+import { generateArbeitsplatz, RxASIVDocumentType } from './database';
 
 
 import { mixed } from './localDE';
@@ -420,7 +420,7 @@ export const FlexboxForm = forwardRef((props, ref) => {
     );
     return { ...prev, ...arrayToObject(validatorsInFields) };
   }, {} as any);
-  console.log(validatorObject);
+  console.log("Validator", validatorObject);
   console.log('Edit', edit);
 
   const formik = useFormik({
@@ -444,11 +444,9 @@ export const FlexboxForm = forwardRef((props, ref) => {
     // }),
 
     onSubmit: (
-      values: RxHeroDocumentType,
+      values: RxASIVDocumentType,
       // { setSubmitting }: FormikHelpers<Values>
     ) => {
-      console.log('???');
-
       const existingQuery = {
         selector: {
           arbeitsplatznummer: values.arbeitsplatznummer,
@@ -527,12 +525,12 @@ export const FlexboxForm = forwardRef((props, ref) => {
   }
 
   const formRef = useRef();
-  console.log('When does this run?');
+
   const toast = useRef(null);
   return (
     <div>
       <Toast ref={toast} />
-      <Button onClick={resetData} label="Eingabe zurücksetzen" />
+      {process.env.NODE_ENV === "development" && <Button onClick={resetData} label="Eingabe zurücksetzen" />}
       <div className="container">
         {fields.map((i) => {
           if (i.type == 'group') {

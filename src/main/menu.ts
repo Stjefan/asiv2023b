@@ -127,13 +127,34 @@ export default class MenuBuilder {
       ],
     };
     const subMenuViewProd: MenuItemConstructorOptions = {
-      label: 'View',
+      label: 'Datei',
       submenu: [
         {
           label: 'Toggle Full Screen',
           accelerator: 'Ctrl+Command+F',
           click: () => {
             this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
+          },
+        },
+        {
+          label: '&Neu laden',
+          accelerator: 'Ctrl+R',
+          click: () => {
+            this.mainWindow.webContents.reload();
+          },
+        },
+        {
+          label: '&Allgemeines',
+
+          click: () => {
+            this.mainWindow.webContents.send('open-general-information');
+          },
+        },
+        {
+          label: '&Datenbank wechseln',
+
+          click: () => {
+            this.mainWindow.webContents.send('open-database-selection');
           },
         },
       ],
@@ -211,20 +232,36 @@ export default class MenuBuilder {
       //   ],
       // },
       {
-        label: '&Ansicht',
+        label: '&Allgemein',
         submenu:
           process.env.NODE_ENV === 'development' ||
           process.env.DEBUG_PROD === 'true'
             ? [
                 {
-                  label: '&Reload',
+                  label: '&Neu laden',
                   accelerator: 'Ctrl+R',
                   click: () => {
                     this.mainWindow.webContents.reload();
                   },
                 },
                 {
-                  label: 'Toggle &Full Screen',
+                  label: '&Allgemeines',
+
+                  click: () => {
+                    this.mainWindow.webContents.send(
+                      'open-general-information',
+                    );
+                  },
+                },
+                {
+                  label: '&Datenbank wechseln',
+
+                  click: () => {
+                    this.mainWindow.webContents.send('open-database-selection');
+                  },
+                },
+                {
+                  label: 'Vollbild',
                   accelerator: 'F11',
                   click: () => {
                     this.mainWindow.setFullScreen(
@@ -242,7 +279,30 @@ export default class MenuBuilder {
               ]
             : [
                 {
-                  label: 'Toggle &Full Screen',
+                  label: '&Neu laden',
+                  accelerator: 'Ctrl+R',
+                  click: () => {
+                    this.mainWindow.webContents.reload();
+                  },
+                },
+                {
+                  label: '&Allgemeines',
+
+                  click: () => {
+                    this.mainWindow.webContents.send(
+                      'open-general-information',
+                    );
+                  },
+                },
+                {
+                  label: '&Datenbank wechseln',
+
+                  click: () => {
+                    this.mainWindow.webContents.send('open-database-selection');
+                  },
+                },
+                {
+                  label: 'Vollbild',
                   accelerator: 'F11',
                   click: () => {
                     this.mainWindow.setFullScreen(
@@ -250,15 +310,9 @@ export default class MenuBuilder {
                     );
                   },
                 },
-                {
-                  label: 'Debugging',
-                  accelerator: 'Alt+Ctrl+I',
-                  click: () => {
-                    this.mainWindow.webContents.toggleDevTools();
-                  },
-                },
               ],
       },
+
       // {
       //   label: 'Help',
       //   submenu: [

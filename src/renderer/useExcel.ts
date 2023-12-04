@@ -154,7 +154,6 @@ export async function exportExcelGrouped(
   if (true) {
     let startRow = 10;
     const templateRow = 10;
-    const excelGroups: ExcelGroup[] = [];
     groups.forEach((data, index) => {
       let groupStartHeader = 0;
       console.log('Data group', index, data);

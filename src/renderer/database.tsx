@@ -113,13 +113,13 @@ export const ARBEITSPLATZ_SCHEMA_LITERAL = {
     },
 
     lex: {
-      type: 'string',
+      type: 'number',
     },
     beurteilungszeit: {
       type: 'string',
     },
     lcpeak: {
-      type: 'string',
+      type: 'number',
     },
     genauigkeitsklasse: {
       type: 'string',
@@ -160,11 +160,11 @@ export const ARBEITSPLATZ_SCHEMA_LITERAL = {
 } as const;
 
 const schemaTyped = toTypedRxJsonSchema(ARBEITSPLATZ_SCHEMA_LITERAL);
-export type RxHeroDocumentType = ExtractDocumentTypeFromTypedRxJsonSchema<
+export type RxASIVDocumentType = ExtractDocumentTypeFromTypedRxJsonSchema<
   typeof schemaTyped
 >;
 
-export const HERO_SCHEMA: RxJsonSchema<RxHeroDocumentType> =
+export const HERO_SCHEMA: RxJsonSchema<RxASIVDocumentType> =
   ARBEITSPLATZ_SCHEMA_LITERAL;
 
 const customConfig: Config = {
@@ -172,12 +172,6 @@ const customConfig: Config = {
   separator: '-',
   length: 2,
 };
-
-const randomName: string = uniqueNamesGenerator({
-  dictionaries: [adjectives, colors, animals],
-}); // big_red_donkey
-
-const shortName: string = uniqueNamesGenerator(customConfig);
 
 function getRandomChoice<T>(choices: T[]): T {
   const randomIndex = Math.floor(Math.random() * choices.length);
@@ -194,7 +188,7 @@ const choicesTaetigkeit = ['Fußball', 'Tennis', 'Putzen', 'Tanzen'];
 const choicesMessorte = ['Bar', 'Stadion', 'zu Hause', 'Auto'];
 const choicesGenauigkeitsklasse = ['D', '1', '2', '3'];
 const choicesMessgeraet = ['Ohr', 'Handy', 'Svantek'];
-export function generateArbeitsplatz(): RxHeroDocumentType {
+export function generateArbeitsplatz(): RxASIVDocumentType {
   return {
     id: uuidv4(),
     name: uniqueNamesGenerator(customConfig),
@@ -215,9 +209,12 @@ export function generateArbeitsplatz(): RxHeroDocumentType {
     messgeraet: getRandomChoice(choicesMessgeraet),
     arbeitskraefteproschicht: `${getRandomChoice([1, 2, 3, 4, 5])}`,
     schichtmodell: `${getRandomChoice([8, 24])}`,
-    lex: `${getRandomChoice([80, 130, 140, 150])}`,
-    lcpeak: `${getRandomChoice([80, 130, 140, 150])}`,
+    lex: getRandomChoice([20, 30, 40, 50, 80, 130, 140, 150]),
+    lcpeak: getRandomChoice([20, 30, 40, 50, 80, 130, 140, 150]),
+
     kommentar1: 'just my 2 cent',
+    kommentar2: 'just my 3 cent',
+    kommentar3: 'just my 4 cent',
     auftragsnummer: uuidv4(),
   };
 }
@@ -238,8 +235,8 @@ export async function getDatabase(name: string, storage: any) {
   });
   db.arbeitsplatzmessungen.preInsert((data) => {
     const now = new Date().getTime();
-    if (!data.createdAt) data.createdAt = now;
-    if (!data.updatedAt) data.updatedAt = now;
+    data.createdAt = now;
+    data.updatedAt = now;
 
     return data;
   }, true);

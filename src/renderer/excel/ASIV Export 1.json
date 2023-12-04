@@ -78,18 +78,18 @@
       "kommentar": "gleich Arbeitsort?",
       "subrow": 2
   },
-  "kommentarzeile1": {
+  "bemerkung1": {
       "type": "row",
       "columnIndex": 28,
       "kommentar": "gleich Bemerkungen?"
   },
-  "kommentarzeile2": {
+  "bemerkung2": {
       "type": "multirow",
       "columnIndex": 28,
       "kommentar": "gleich Bemerkungen?",
       "subrow": 1
   },
-  "kommentarzeile3": {
+  "bemerkung3": {
       "type": "multirow",
       "columnIndex": 28,
       "kommentar": "gleich Bemerkungen?",

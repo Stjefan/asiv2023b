@@ -55,3 +55,11 @@ export function object2array(arg: any, parent = null, level = 0) {
     return arr;
   }, [] as any[]);
 }
+
+export function arrayToObject(arr: any[], key: string, callback: (any) => any = null) {
+  const obj = {} as any;
+  arr.forEach((item: any) => {
+      obj[item[key]] = callback ? callback(item) : item;
+  });
+  return obj;
+}

@@ -40,17 +40,6 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
-
-ipcMain.on('get-version', (event) => {
-  console.log('Get-Version', app.getVersion());
-  event.reply('current-version', app.getVersion());
-});
-
 ipcMain.on('open-file-dialog', (event) => {
   console.log(app.getVersion());
   dialog
@@ -109,7 +98,7 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
-    icon: getAssetPath('icon.png'),
+    icon: getAssetPath('logo192.png'),
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')

@@ -128,6 +128,7 @@ export function runExcelExport(products: any[], selectedCategory = '') {
 
 export function runExcelBackup(products: any[]) {
   async function fetchData() {
+    return new Promise(async (resolve, reject) => {
     // Fetch the xlsx file from the public folder
     const response = await fetch(BackupVorlage.default);
     const blob = await response.blob();
@@ -146,13 +147,15 @@ export function runExcelBackup(products: any[]) {
       // const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
       // setData(jsonData);
-      saveAs(
+      await saveAs(
         await exportExcelAsBackup(data, products, MapperBackupExport),
         'full-db-export.xlsx',
       );
+      resolve(0)
     };
     reader.readAsArrayBuffer(blob);
+    })
   }
 
-  fetchData();
+  return fetchData();
 }

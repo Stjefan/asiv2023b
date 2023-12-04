@@ -7,8 +7,15 @@ import { Toolbar } from 'primereact/toolbar';
 import { FilterMatchMode, FilterOperator } from 'primereact/api';
 import { ContextMenu } from 'primereact/contextmenu';
 import { Toast } from 'primereact/toast';
+import { Calendar } from 'primereact/calendar';
+import { classNames } from 'primereact/utils';
+import { Checkbox } from 'primereact/checkbox';
+import { TriStateCheckbox } from 'primereact/tristatecheckbox';
 import { ASIVContext } from './App';
 import { generateArbeitsplatz } from './database';
+import { arrayToObject } from './utility';
+import { FEHLER_SETTINGS } from './messages';
+import { confirmDialog } from 'primereact/confirmdialog';
 
 export function AnotherView() {
   return <div>Another</div>;
@@ -104,7 +111,8 @@ export function TableView() {
     setMessungenExport,
     showLoadingDialog,
     setShowLoadingDialog,
-  } = context;
+    toast
+  } = context!;
 
   const onColumnToggle = (event: MultiSelectChangeEvent) => {
     const selectedColumns = event.value;
@@ -124,7 +132,7 @@ export function TableView() {
         },
       })
       .$.subscribe((docs) => {
-        console.log("Subscription is triggered")
+        console.log('Subscription is triggered');
         const rows = docs.map((i) => {
           const asJSON = i.toJSON();
           return {
@@ -146,7 +154,6 @@ export function TableView() {
       const subscription = createDatabaseSubscription();
       return () => subscription.unsubscribe();
     }
-
   }, [db]);
 
   const header = (
@@ -164,15 +171,16 @@ export function TableView() {
     return formatDateForInput(rowData[additional.field]);
   };
 
-  const toast = React.useRef<Toast>(null);
+
   const cm = React.useRef<ContextMenu>(null);
+
+
   const menuModel = [
     {
       label: 'Details anzeigen',
       icon: 'pi pi-fw pi-search',
       command: () => {
-        console.log(messungenExport);
-        setEdit(messungenExport[0]);
+        setEdit(mouseRow)
         setDialogEdit(true);
       },
     },
@@ -181,7 +189,13 @@ export function TableView() {
       icon: 'pi pi-fw pi-times',
       command: () => {
         console.log(messungenExport);
-        archivereSelected();
+        // archiviereSingle()
+        confirmDialog({
+          message: `Soll die Messungen zum Arbeitsplatz wirklich archiviert werden? Dies kann nicht rückgängig gemacht werden.`,
+            header: 'Bestätigung erforderlich',
+          accept: () => archivereSelected(mouseRow.id)
+        })
+
       },
     },
   ];
@@ -206,15 +220,21 @@ export function TableView() {
           label="Neu"
           icon="pi pi-plus"
           severity="success"
-          onClick={() => setDialogEdit(true)}
+          onClick={() => {
+            setEdit(null)
+            setDialogEdit(true)}
+          }
         />
         <Button
           label="Archivieren"
           icon="pi pi-trash"
           severity="danger"
-          onClick={archivereSelected}
+          onClick={() => archivereSelected(messungenExport.map((i) => i.id))}
           disabled={!messungenExport || !messungenExport.length}
         />
+        <br/>
+        <Button type="button" icon="pi pi-filter-slash" label="Filter löschen" outlined onClick={clearFilter} />
+        <br/>
         <Button
           label="Einstellungen speichern"
           icon="pi pi-pencil"
@@ -225,8 +245,13 @@ export function TableView() {
           icon="pi pi-pencil"
           onClick={loadSettings}
         />
-        <Button label="Insert many (1000)" onClick={() => insertMany(1000)} />
+
+
+        {process.env.NODE_ENV === "development" && (<>
+        <br/>
+        <Button label="Insert many (1000)" onClick={() => insertMany(100)} />
         <Button label="Insert many (5000)" onClick={() => insertMany(5000)} />
+        </>)}
       </div>
     );
   };
@@ -240,6 +265,7 @@ export function TableView() {
   }
 
   async function loadSettings() {
+    try {
     const localDoc = (
       await db.getLocal(
         'orderedSelectedColumns', // id
@@ -256,22 +282,25 @@ export function TableView() {
     );
 
     setVisibleColumns(orderedSelectedColumns);
+  } catch(ex) {
+    console.error(ex)
+    toast.current?.show(FEHLER_SETTINGS)
+  }
   }
 
-  async function archivereSelected() {
-    if (messungenExport.length) {
-      console.log(
-        db.arbeitsplatzmessungen
-          .find({
-            selector: { id: { $in: messungenExport.map((i) => i.id) } },
-          })
-          .update({
-            $set: {
-              archiviert: 1,
-            },
-          })
-          .then((doc) => console.log(doc)),
-      );
+  async function archivereSelected(ids: string[]) {
+    console.log('archivereSelected', ids);
+    if (ids?.length) {
+      db.arbeitsplatzmessungen
+        .find({
+          selector: { id: { $in: ids } },
+        })
+        .update({
+          $set: {
+            archiviert: 1,
+          },
+        })
+        .then((doc) => console.log(doc));
     }
   }
 
@@ -300,17 +329,62 @@ export function TableView() {
     );
   };
 
-  const [filters, setFilters] = useState(
-    {
-    // global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    id: { value: null, matchMode: FilterMatchMode.STARTS_WITH,  },
-    // 'country.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    // representative: { value: null, matchMode: FilterMatchMode.IN },
-    // status: { value: null, matchMode: FilterMatchMode.EQUALS },
-    // verified: { value: null, matchMode: FilterMatchMode.EQUALS }
+  const clearFilter = () => {
+    setFilters(initFilters());
+  };
+  function  initFilters() {
+    return arrayToObject(columns, 'field', (arg) => {
+    if (arg.type == 'date') {
+      return {
+        operator: FilterOperator.AND,
+        constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
+      };
+    }
+    if (arg.type == 'numeric') {
+      return {
+        operator: FilterOperator.AND,
+        constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+      };
+    }
+    if (arg.type == 'boolean') {
+      return {
+        operator: FilterOperator.AND,
+        constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+      };
+    }
+    return {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+    };
+    })
   }
+  const [filters, setFilters] = useState(
+    initFilters()
   );
 
+  const dateFilterTemplate = (options) => {
+    return (
+      <Calendar
+        value={options.value}
+        onChange={(e) => options.filterCallback(e.value, options.index)}
+      />
+    );
+  };
+
+  const verifiedBodyTemplate = (rowData) => {
+    return <Checkbox checked={rowData.archiviert} />;
+  };
+
+  const verifiedFilterTemplate = (options) => {
+    return (
+      <TriStateCheckbox
+        value={options.value}
+        onChange={(e) => options.filterCallback(e.value)}
+      />
+    );
+  };
+
+  const [mouseRow, setMouseRow] = useState(null)
 
   return (
     <div>
@@ -318,8 +392,8 @@ export function TableView() {
 
       <Toolbar
         className="mb-4"
-        left={leftToolbarTemplate}
-        right={rightToolbarTemplate}
+        start={leftToolbarTemplate}
+        end={rightToolbarTemplate}
       />
       <DataTable
         value={products}
@@ -328,7 +402,12 @@ export function TableView() {
         selection={messungenExport}
         filters={filters}
         onSelectionChange={(e) => setMessungenExport(e.value)}
-        onContextMenu={(e) => cm.current.show(e.originalEvent)}
+        onContextMenu={(e) => {
+          // Entscheidung ob Array oder nicht
+          cm.current.show(e.originalEvent);
+
+        }}
+        onRowMouseEnter={e => setMouseRow(e.data)}
         resizableColumns
         reorderableColumns
         paginator
@@ -345,10 +424,25 @@ export function TableView() {
                 key={col.field}
                 field={col.field}
                 header={col.header}
+                filterElement={dateFilterTemplate}
                 filter
                 sortable
                 dataType={col.type}
                 body={dateBodyTemplate}
+              />
+            );
+          }
+          if (col.type == 'boolean') {
+            return (
+              <Column
+                key={col.field}
+                field={col.field}
+                header={col.header}
+                dataType="boolean"
+                sortable
+                body={verifiedBodyTemplate}
+                filter
+                filterElement={verifiedFilterTemplate}
               />
             );
           }
@@ -358,7 +452,6 @@ export function TableView() {
               field={col.field}
               header={col.header}
               dataType={col.type}
-              filterField={col.field}
               filter
               sortable
             />
