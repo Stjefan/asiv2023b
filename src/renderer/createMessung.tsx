@@ -20,13 +20,11 @@ import { confirmDialog } from 'primereact/confirmdialog';
 import { ASIVContext } from './App';
 import { generateArbeitsplatz, RxASIVDocumentType } from './database';
 
-
 import { mixed } from './localDE';
 
-
 Yup.setLocale({
-  mixed
-})
+  mixed,
+});
 interface KufiInputProps {
   label: string;
   name: string;
@@ -47,62 +45,54 @@ function Textfield({
   ...props
 }: KufiInputProps) {
   return (
-    <div className="row">
-      {' '}
-      <label className="col-2">{label}</label>
-      <label
+    <div className="grid p-2">
+      <div className="col-2">{label}</div>
+      <div
         className="col-2"
         dangerouslySetInnerHTML={{ __html: groupLabel }}
-      />
-      <InputText className="col-2"  {...props} />
+      ></div>
+      <InputText className="col-3" {...props} />
       <div className="col-2">
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </div>
-      <div className="col-4">{bemerkung}</div>
+      <div className="col-3">{bemerkung}</div>
     </div>
   );
 }
 
-function Numberfield({
+function NumberfieldV2({
   label,
+  groupLabel,
   error,
   bemerkung,
-  groupLabel,
+  setFieldValue,
+  name,
   ...props
-}: KufiInputProps) {
+}: any) {
   return (
-    <div className="row">
-      {' '}
-      <label className="col-2">{label}</label>
-      <label
+    <div className="grid p-2">
+      <div className="col-2">{label}</div>
+      <div
         className="col-2"
         dangerouslySetInnerHTML={{ __html: groupLabel }}
+      ></div>
+      {/* <label
+    className="col-2"
+    dangerouslySetInnerHTML={{ __html: groupLabel }}
+  /> */}
+      <InputNumber
+        value={props.value}
+        onChange={(event) => setFieldValue(name, event.value)}
+        name={name}
+        className="col-3"
       />
-      <InputNumber {...props} className="col-2"/>
       {/* <input {...props} type="number" className="col-2" /> */}
       <div className="col-2">
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </div>
-      <div className="col-4">{bemerkung}</div>
+      <div className="col-3">{bemerkung}</div>
     </div>
   );
-}
-
-function NumberfieldV2({label, groupLabel, error, bemerkung, setFieldValue, name, ...props}: any) {
-  return <div className="row">
-  {' '}
-  <label className="col-2">{label}</label>
-  <label
-    className="col-2"
-    dangerouslySetInnerHTML={{ __html: groupLabel }}
-  />
-  <InputNumber value={props.value} onChange={event => setFieldValue(name, event.value)} name={name} className="col-2"/>
-  {/* <input {...props} type="number" className="col-2" /> */}
-  <div className="col-2">
-    {error && <div style={{ color: 'red' }}>{error}</div>}
-  </div>
-  <div className="col-4">{bemerkung}</div>
-</div>
 }
 function DropDownField({
   label,
@@ -113,11 +103,11 @@ function DropDownField({
   ...props
 }: KufiInputProps) {
   return (
-    <div className="row">
+    <div className="grid p-2">
       {' '}
-      <label className="col-2">{label}</label>
-      <label className="col-2">{groupLabel}</label>
-      <select {...props} className="col-2">
+      <div className="col-2">{label}</div>
+      <div className="col-2">{groupLabel}</div>
+      <select {...props} className="col-3">
         {options.map((i) => (
           <option key={i}>{i}</option>
         ))}
@@ -125,7 +115,7 @@ function DropDownField({
       <div className="col-2">
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </div>
-      <div className="col-4">{bemerkung}</div>
+      <div className="col-3">{bemerkung}</div>
     </div>
   );
 }
@@ -138,15 +128,15 @@ function Datefield({
   ...props
 }: KufiInputProps) {
   return (
-    <div className="row">
+    <div className="grid p-2">
       {' '}
-      <label className="col-2">{label}</label>
-      <label className="col-2">{groupLabel}</label>
-      <input {...props} type="date" className="col-2" />
+      <div className="col-2">{label}</div>
+      <div className="col-2">{groupLabel}</div>
+      <input {...props} type="date" className="col-3" />
       <div className="col-2">
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </div>
-      <div className="col-4">{bemerkung}</div>
+      <div className="col-3">{bemerkung}</div>
     </div>
   );
 }
@@ -158,7 +148,7 @@ export const formatDateForInput = (date) => {
 };
 
 function createField(i: any, formik: any, label1: string | null = null) {
-  if (i.type == 'text') {
+  if (i.type === 'text') {
     return (
       <Textfield
         key={i.label}
@@ -173,7 +163,7 @@ function createField(i: any, formik: any, label1: string | null = null) {
       />
     );
   }
-  if (i.type == 'numeric') {
+  if (i.type === 'numeric') {
     return (
       <NumberfieldV2
         key={i.label}
@@ -189,7 +179,7 @@ function createField(i: any, formik: any, label1: string | null = null) {
       />
     );
   }
-  if (i.type == 'choice') {
+  if (i.type === 'choice') {
     return (
       <DropDownField
         key={i.label}
@@ -205,7 +195,7 @@ function createField(i: any, formik: any, label1: string | null = null) {
       />
     );
   }
-  if (i.type == 'date') {
+  if (i.type === 'date') {
     return (
       <Datefield
         key={i.label}
@@ -228,14 +218,11 @@ export const FlexboxForm = forwardRef((props, ref) => {
 
   useImperativeHandle(ref, () => ({
     submitInForm: () => {
-      console.log(formRef?.current);
       formik.handleSubmit();
-      console.log('Child function has been called!');
-      // ... your function logic
     },
   }));
 
-  const { edit, db } = context;
+  const { edit, db, toast } = context;
   const fields = [
     {
       type: 'group',
@@ -391,7 +378,7 @@ export const FlexboxForm = forwardRef((props, ref) => {
       validators: ['r'],
     },
   ];
-  const f = (arg: any) => {
+  const helperSchemaRequired = (arg: any) => {
     if (arg.type === 'text') {
       return Yup.string().required();
     }
@@ -403,15 +390,15 @@ export const FlexboxForm = forwardRef((props, ref) => {
   function arrayToObject(arr: any[]) {
     return arr.reduce((prev, currentVal) => {
       if (currentVal.validators?.includes('r')) {
-        return { ...prev, [currentVal.name]: f(currentVal) };
+        return { ...prev, [currentVal.name]: helperSchemaRequired(currentVal) };
       }
       return prev;
     }, {} as any);
   }
   const validatorObject = fields.reduce((prev, currentVal) => {
-    if (currentVal.type != 'group') {
+    if (currentVal.type !== 'group') {
       if (currentVal.validators?.includes('r')) {
-        return { ...prev, [currentVal.name]: f(currentVal) };
+        return { ...prev, [currentVal.name]: helperSchemaRequired(currentVal) };
       }
       return prev;
     }
@@ -420,8 +407,6 @@ export const FlexboxForm = forwardRef((props, ref) => {
     );
     return { ...prev, ...arrayToObject(validatorsInFields) };
   }, {} as any);
-  console.log("Validator", validatorObject);
-  console.log('Edit', edit);
 
   const formik = useFormik({
     initialValues: edit
@@ -502,7 +487,7 @@ export const FlexboxForm = forwardRef((props, ref) => {
               life: 3000,
             });
           }
-        });
+        }).catch(ex => console.log(error))
 
       //   alert(JSON.stringify(values, null, 2));
       //   setSubmitting(false);
@@ -526,14 +511,15 @@ export const FlexboxForm = forwardRef((props, ref) => {
 
   const formRef = useRef();
 
-  const toast = useRef(null);
   return (
     <div>
-      <Toast ref={toast} />
-      {process.env.NODE_ENV === "development" && <Button onClick={resetData} label="Eingabe zurücksetzen" />}
-      <div className="container">
+
+      {process.env.NODE_ENV === 'development' && (
+        <Button onClick={resetData} label="Eingabe zurücksetzen" />
+      )}
+      <div>
         {fields.map((i) => {
-          if (i.type == 'group') {
+          if (i.type === 'group') {
             return i.fields.map((ii, index) => {
               if (index == 0) {
                 return createField(ii, formik, i.label);
@@ -545,12 +531,6 @@ export const FlexboxForm = forwardRef((props, ref) => {
         })}
       </div>
       <form onSubmit={formik.handleSubmit} ref={formRef}>
-        <br />
-        {/* <button type="submit">Submit1</button>
-
-        <button type="button" onClick={formik.resetForm}>
-          Reset
-        </button> */}
       </form>
     </div>
   );

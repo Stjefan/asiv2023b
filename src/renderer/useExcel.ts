@@ -134,14 +134,12 @@ function copyHeaderRows(worksheet: Worksheet, targetRow: number) {
   // Add additional properties as needed
 }
 
-interface ExcelGroup {
-  startRow: number;
-  dataRows: number[];
-}
 export async function exportExcelGrouped(
   myBlob: Uint8Array,
   groups: any[],
   mapper: any,
+  bearbeiter2insert: string,
+  datum2insert: Date,
   numberRowsPerElement = 3,
 ) {
   const workbook = new Workbook();
@@ -245,11 +243,24 @@ export async function exportExcelGrouped(
       if (true) {
         for (const key in mapper) {
           const m = mapper[key];
+
           if (m.type == 'header') {
-            worksheet.getCell(
-              m.rowindex + groupStartHeader,
-              m.columnIndex,
-            ).value = data[0][key];
+            if (key == 'bearbeiter') {
+              worksheet.getCell(
+                m.rowindex + groupStartHeader,
+                m.columnIndex,
+              ).value = bearbeiter2insert;
+            } else if (key == 'aktuellesdatum') {
+              worksheet.getCell(
+                m.rowindex + groupStartHeader,
+                m.columnIndex,
+              ).value = datum2insert.toLocaleDateString();
+            } else {
+              worksheet.getCell(
+                m.rowindex + groupStartHeader,
+                m.columnIndex,
+              ).value = data[0][key];
+            }
           }
         }
 

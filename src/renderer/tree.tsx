@@ -4,17 +4,12 @@ import {
   TreeExpandedKeysType,
   TreeNodeTemplateOptions,
 } from 'primereact/tree';
-import { v4 as uuid } from 'uuid';
 import { ContextMenu } from 'primereact/contextmenu';
 import { Toast } from 'primereact/toast';
-import { map } from 'rxjs';
 import { RxDocument } from 'rxdb';
 import { TreeNode } from 'primereact/treenode';
-import { Checkbox } from 'primereact/checkbox';
-import { ToggleButton } from 'primereact/togglebutton';
 import { RadioButton } from 'primereact/radiobutton';
 import { Toolbar } from 'primereact/toolbar';
-import { TriStateCheckbox } from 'primereact/tristatecheckbox';
 import { groupByMultipleKeys, object2array } from './utility';
 import { ASIVContext } from './App';
 
@@ -60,8 +55,8 @@ function baseHandlingDocs(
 export function Empty() {}
 
 interface Mode {
-  key: string
-  name: string
+  key: string;
+  name: string;
 }
 export function TreeView() {
   const [nodes, setNodes] = useState([]);
@@ -144,29 +139,32 @@ export function TreeView() {
   };
 
   const toolbarStart = () => (
-  <>
-  {modes.map((category) => {
-    return (
-      <div key={category.key} className="flex align-items-center">
-        <RadioButton
-          inputId={category.key}
-          name="category"
-          value={category}
-          onChange={(e) => setExcludeArchive(e.value)}
-          checked={excludeArchive.key === category.key}
-        />
-        <label htmlFor={category.key} className="ml-2">
-          {category.name}
-        </label>
+    <div className=''>
+      {modes.map((category) => {
+        return (
+          <div key={category.key} className="">
+            <RadioButton
+              inputId={category.key}
+              name="category"
+              value={category}
+              onChange={(e) => setExcludeArchive(e.value)}
+              checked={excludeArchive.key === category.key}
+            />
+            <label htmlFor={category.key} className="ml-2">
+              {category.name}
+            </label>
+          </div>
+        );
+      })}
       </div>
-    );
-  })}</>)
+  );
 
   return (
     <div className="card flex justify-content-center">
       <ContextMenu model={menu} ref={cm} />
       <Toast ref={toast} />
-      <Toolbar start={toolbarStart}/>
+      <div >
+      <Toolbar start={toolbarStart} className='flex justify-content-center flex-wrap' />
       <Tree
         value={nodes}
         className="w-full md:w-30rem"
@@ -184,6 +182,7 @@ export function TreeView() {
         filterPlaceholder="Filter"
         nodeTemplate={nodeTemplate}
       />
+      </div>
     </div>
   );
 }

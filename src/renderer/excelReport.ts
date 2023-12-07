@@ -20,7 +20,12 @@ import * as MapperVorlageAbteilung from './excel/ASIV Export Abteilung.json';
 import * as BackupVorlage from './excel/ASIV Export Backup.xlsx';
 import * as MapperBackupExport from './excel/ASIV Export Backup.json';
 
-export function runExcelExport(products: any[], selectedCategory = '') {
+export function runExcelExport(
+  products: any[],
+  selectedCategory: string,
+  bearbeiter2insert: string,
+  datum2insert: Date,
+) {
   console.log('selectedCategory', selectedCategory);
   async function fetchData() {
     return new Promise(async (resolve, reject) => {
@@ -113,6 +118,8 @@ export function runExcelExport(products: any[], selectedCategory = '') {
             data,
             groups,
             v.mapper,
+            bearbeiter2insert,
+            datum2insert,
             v.numberRowsPerElement ?? 3,
           ),
           `export-nach-vorlage-${v.name}.xlsx`,
@@ -129,32 +136,32 @@ export function runExcelExport(products: any[], selectedCategory = '') {
 export function runExcelBackup(products: any[]) {
   async function fetchData() {
     return new Promise(async (resolve, reject) => {
-    // Fetch the xlsx file from the public folder
-    const response = await fetch(BackupVorlage.default);
-    const blob = await response.blob();
+      // Fetch the xlsx file from the public folder
+      const response = await fetch(BackupVorlage.default);
+      const blob = await response.blob();
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const data = new Uint8Array(e.target!.result as any);
-      console.log(data);
-      // const workbook = XLSX.read(data, { type: 'array' });
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const data = new Uint8Array(e.target!.result as any);
+        console.log(data);
+        // const workbook = XLSX.read(data, { type: 'array' });
 
-      // // Assuming the data is on the first sheet, adjust as needed
-      // const worksheetName = workbook.SheetNames[0];
-      // const worksheet = workbook.Sheets[worksheetName];
+        // // Assuming the data is on the first sheet, adjust as needed
+        // const worksheetName = workbook.SheetNames[0];
+        // const worksheet = workbook.Sheets[worksheetName];
 
-      // // Convert the worksheet to JSON
-      // const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        // // Convert the worksheet to JSON
+        // const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-      // setData(jsonData);
-      await saveAs(
-        await exportExcelAsBackup(data, products, MapperBackupExport),
-        'full-db-export.xlsx',
-      );
-      resolve(0)
-    };
-    reader.readAsArrayBuffer(blob);
-    })
+        // setData(jsonData);
+        await saveAs(
+          await exportExcelAsBackup(data, products, MapperBackupExport),
+          'full-db-export.xlsx',
+        );
+        resolve(0);
+      };
+      reader.readAsArrayBuffer(blob);
+    });
   }
 
   return fetchData();

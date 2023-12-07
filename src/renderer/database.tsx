@@ -227,7 +227,7 @@ export async function getDatabase(name: string, storage: any) {
     localDocuments: true,
   });
 
-  console.log('creating hero-collection..');
+  console.log('Erstelle Datenbank..');
   await db.addCollections({
     arbeitsplatzmessungen: {
       schema: ARBEITSPLATZ_SCHEMA_LITERAL,

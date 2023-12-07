@@ -26,12 +26,17 @@ export function DynamicDemo({
   categories,
   selectedCategory,
   setSelectedCategory,
+  bearbeiter,
+  setBearbeiter,
+  datum,
+  setDatum,
   ...props
 }) {
   return (
-    <div className="card flex justify-content-center">
-      <p>Vorlage auswählen:</p>
-      <div className="flex flex-column">
+    <div>
+<div class="field grid">
+      <label className='col-2'>Vorlage auswählen:</label>
+      <div className="col-10">
         {categories.map((category) => {
           return (
             <div key={category.key} className="flex align-items-center">
@@ -51,14 +56,17 @@ export function DynamicDemo({
           );
         })}
       </div>
-      <div className="flex flex-column gap-2">
-      <InputText placeholder='Bearbeiter' aria-describedby="username-help"/>
+      </div>
+      <div class="field grid">
+        <label className='col-2'>Bearbeiter</label>
+      <InputText placeholder='Bearbeiter' aria-describedby="username-help" value={bearbeiter} onInput={(e) => setBearbeiter(e.target.value)}/>
       <small id="username-help">
         Eintragener Name des Bearbeiters
     </small>
       </div>
-      <div className="flex flex-column gap-2">
-    <Calendar aria-describedby="username-help" placeholder='Datum'/>
+      <div class="field grid">
+      <label className='col-2'>Bearbeiter</label>
+    <Calendar aria-describedby="username-help" placeholder='Datum' value={datum} onChange={(e) => setDatum(e.value)}/>
     <small id="username-help">
        Im Datumsfeld in der Vorlage eingetragener Wert.
     </small>
@@ -144,6 +152,9 @@ export function MessungenExportDialog({ handleConfirm, ...props }) {
     categories[1],
   );
 
+  const [bearbeiter, setBearbeiter] = useState("")
+  const [datum, setDatum] = useState(new Date())
+
   const footerContent = (
     <div>
       <Button
@@ -158,9 +169,9 @@ export function MessungenExportDialog({ handleConfirm, ...props }) {
         onClick={() => {
           try {
             if (messungenExport) {
-              console.log("???")
               setShowLoadingDialog(true)
-              runExcelExport(messungenExport, selectedCategory.name).catch(err => console.error(err)).finally(_ => setShowLoadingDialog(false))
+              console.log(datum)
+              runExcelExport(messungenExport, selectedCategory.name, bearbeiter, datum).catch(err => console.error(err)).finally(_ => setShowLoadingDialog(false))
               // runExcelExport(messungenExport, selectedCategory.name);
             } else {
               throw new Error('Bitte Messungen in der Tabelle auswählen');
@@ -187,6 +198,10 @@ export function MessungenExportDialog({ handleConfirm, ...props }) {
         categories={categories}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
+        bearbeiter={bearbeiter}
+        setBearbeiter={setBearbeiter}
+        datum={datum}
+        setDatum={setDatum}
       />
     </Dialog>
   );
@@ -211,6 +226,7 @@ export function ImportDialog() {
       <Button
         label="Importieren"
         icon="pi pi-check"
+        disabled={!file}
         onClick={() => runImport()}
         autoFocus
       />
@@ -219,8 +235,10 @@ export function ImportDialog() {
 
   async function runImport() {
     const b = await blob2uint8(file);
+    try {
     const results = await importExcel(b, MapperImport, startLine, sheetName);
     console.log(results);
+
 
     Promise.all(results.map((r: any) => db.arbeitsplatzmessungen.insert(r)))
       .then((_) => {
@@ -241,6 +259,14 @@ export function ImportDialog() {
           life: 3000,
         });
       });
+    } catch(ex) {
+      toast.current.show({
+        severity: 'error',
+        summary: 'Import fehlgeschlagen',
+        detail: `${ex}`,
+        life: 3000,
+      });
+    }
   }
 
   const [startLine, setStartLine] = useState(8);
@@ -262,7 +288,9 @@ export function ImportDialog() {
         footer={footerContent}
       >
         <div>
-          <label>Datei auswählen</label>
+        <div class="field grid">
+        <label className='col-2'>Datei auswählen</label>
+        <div className='col-10'>
           <input
             type="file"
             onInput={(event) =>
@@ -271,19 +299,24 @@ export function ImportDialog() {
                 : setFile(null)
             }
           />
-          <br />
-          <label>Excel-Sheet-Bezeichnung:</label>
-          <InputText
+          </div>
+</div>
+<div class="field grid">
+<label className='col-2'>Excel-Sheet-Bezeichnung:</label>
+          <InputText className='col-10'
             onInput={(e) => setSheetName(e.target.value)}
             value={sheetName}
           />
-          <br />
-          <label>Zeilennummer der ersten Datenzeile:</label>
-          <InputNumber
+
+</div>
+
+<div class="field grid">
+          <label className='col-2'>Zeilennummer der ersten Datenzeile:</label>
+          <InputNumber className='col-10'
             onChange={(e) => setStartLine(e.value)}
             value={startLine}
           />
-          <br />
+</div>
         </div>
       </Dialog>
     </div>
@@ -311,7 +344,9 @@ export function EditDialog({ header, handleConfirm, ...props }) {
         onClick={() => {
           console.log(flexRef.current);
           console.log(flexRef.current?.submitInForm());
-          handleConfirm();
+          if (handleConfirm) {
+            handleConfirm();
+          }
           // setDialogEdit(false)}
         }}
         autoFocus
@@ -449,7 +484,7 @@ export function DatenbankChangeDialog({
       visible={showDialog}
       footer={
         <>
-          <Button label="Zurück" onClick={() => setShowDialog(false)} />
+          <Button label="Zurück zum Hauptbildschirm" onClick={() => setShowDialog(false)} />
         </>
       }
       onHide={() => {
@@ -457,29 +492,34 @@ export function DatenbankChangeDialog({
         setShowDialog(false);
       }}
     >
-      <ul>
-        <li>
-          {' '}
-          <p>Ordner auswählen: </p>{' '}
+      <div>
+        <div>
+          {'1.'}
+          <p>Datenbank-Verzeichnis auswählen: </p>{' '}
           <p>
-            Ordner, in dem eine existierende Datenbank liegt oder eine neue Datenbank erstellt werden soll. Die Datenbank besteht aus
-            mehreren Dateien, deshalb empfiehlt sich ein eigener Ordner.
+            Verzeichnis, in dem eine existierende Datenbank liegt oder eine neue Datenbank erstellt werden soll.
+            {/* Vorsicht beim Auswählen des Ordners über den Dialog. Es wird der im Dialog in der oberen Zeile ausgewählte Pfad übernommen, unabhängig von der Auswahl im Fenster. */}
           </p>{' '}
           <Button
             type="button"
             onClick={selectFile}
-            label="Datenbank-Datei wählen"
+            label="Datenbank-Verzeichnis wählen"
           />
-        </li>
-        <li>
+          <p>
+          Aktuell: {localStorage.getItem('pathDatabase')}
+
+</p>
+        </div>
+        {/* <div>
+          {'2.'}
           <p>Datenbank laden (oder erstellen, falls keine Datenbank im Ordner vorhanden ist){' '}:</p>
           <Button
             type="button"
             onClick={loadDatabse}
             label="Datenbank erstellen"
           />
-        </li>
-      </ul>
+        </div> */}
+      </div>
     </Dialog>
   );
 }
@@ -498,7 +538,9 @@ export function LoadingDialog() {
         style={{ width: '50vw' }}
         onHide={() => setShowLoadingDialog(false)}
       >
+        <div className='flex justify-content-center flex-wrap'>
         <ProgressSpinner />
+        </div>
       </Dialog>
     </div>
   );

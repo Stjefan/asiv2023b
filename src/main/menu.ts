@@ -111,14 +111,14 @@ export default class MenuBuilder {
           },
         },
         {
-          label: 'Toggle Full Screen',
+          label: 'Full Screen',
           accelerator: 'Ctrl+Command+F',
           click: () => {
             this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
           },
         },
         {
-          label: 'Toggle Developer Tools',
+          label: 'Developer Tools',
           accelerator: 'Alt+Command+I',
           click: () => {
             this.mainWindow.webContents.toggleDevTools();
@@ -130,7 +130,7 @@ export default class MenuBuilder {
       label: 'Datei',
       submenu: [
         {
-          label: 'Toggle Full Screen',
+          label: 'Full Screen',
           accelerator: 'Ctrl+Command+F',
           click: () => {
             this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
@@ -151,7 +151,7 @@ export default class MenuBuilder {
           },
         },
         {
-          label: '&Datenbank wechseln',
+          label: '&Datenbank auswählen / erstellen',
 
           click: () => {
             this.mainWindow.webContents.send('open-database-selection');
@@ -254,7 +254,7 @@ export default class MenuBuilder {
                   },
                 },
                 {
-                  label: '&Datenbank wechseln',
+                  label: '&Datenbank auswählen / erstellen',
 
                   click: () => {
                     this.mainWindow.webContents.send('open-database-selection');
@@ -270,7 +270,7 @@ export default class MenuBuilder {
                   },
                 },
                 {
-                  label: 'Toggle &Developer Tools',
+                  label: '&Developer Tools',
                   accelerator: 'Alt+Ctrl+I',
                   click: () => {
                     this.mainWindow.webContents.toggleDevTools();
@@ -295,7 +295,7 @@ export default class MenuBuilder {
                   },
                 },
                 {
-                  label: '&Datenbank wechseln',
+                  label: '&Datenbank auswählen / erstellen',
 
                   click: () => {
                     this.mainWindow.webContents.send('open-database-selection');
@@ -308,6 +308,13 @@ export default class MenuBuilder {
                     this.mainWindow.setFullScreen(
                       !this.mainWindow.isFullScreen(),
                     );
+                  },
+                },
+                {
+                  label: 'Ein/Ausblenden &Developer Tools',
+                  accelerator: 'Alt+Ctrl+I',
+                  click: () => {
+                    this.mainWindow.webContents.toggleDevTools();
                   },
                 },
               ],

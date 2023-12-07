@@ -1,13 +1,10 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { getRxStorageIpcRenderer } from 'rxdb/plugins/electron';
 import { getRxStorageLoki } from 'rxdb/plugins/storage-lokijs';
-import { RxDatabase } from 'rxdb';
-import { Button } from 'primereact/button';
 
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import {
   PrimeReactProvider,
-  PrimeReactContext,
   FilterMatchMode,
   Filter,
   locale,
@@ -19,12 +16,19 @@ import {
 } from 'primereact/api';
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog } from 'primereact/confirmdialog';
+
+import 'primereact/resources/themes/bootstrap4-light-blue/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeflex/primeflex.css';
+import { Panel } from 'primereact/panel';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import 'primeicons/primeicons.css';
+
 import icon from '../../assets/icon.svg';
 import './App.css';
 import { generateArbeitsplatz, getDatabase } from './database';
-import 'primereact/resources/themes/bootstrap4-light-blue/theme.css';
-import 'primereact/resources/primereact.min.css';
-
+import * as de from './de.json';
 import { TableView } from './table';
 import { TreeView } from './tree';
 import { ExperimentalDialog } from './experimental';
@@ -37,9 +41,7 @@ import {
   LoadingDialog,
   DatenbankChangeDialog,
 } from './dialogs';
-import { Card } from 'primereact/card';
-import * as de from './de.json';
-
+import { ERFOLG_DATENBANKWECHSEL, FEHLER_SETTINGS } from './messages';
 
 addLocale('de', de);
 locale('de');
@@ -60,7 +62,6 @@ function MainView() {
     setShowVersionDialog,
     selectFile,
     databaseFile,
-    loadDatabse,
     setDatabaseFile,
   } = context!;
 
@@ -101,31 +102,42 @@ function MainView() {
     },
   );
 
-
   const [showChangeDatabase, setShowChangeDatabase] = useState(false);
 
   const [showExperimentalDialog, setShowExperimentalDialog] = useState(false);
+
+  const markdown = `
+### Schnellstart:
+1. **Allgemein** in der Menüleiste ausklappen
+1. Im ausgeklappen Menü **Datenbank wechseln / erstellen** auswählen
+1. Im auftretenden Dialog ***Datenbank-Datei wählen** drücken und einen passenden Ordner aussuchen
+1. Ein erfolgreicher Datenbankwechsel (oder eine Neuerstellung bei nicht vorhandener Datenbank im Ordner) wird über eine Benachrichtigung bestätigt
+1. Anschließend den Dialog mit **Zurück zum Hauptbildschirm** beenden
+
+### Quick-Fix:
+1. Bei unvorhergesehenen Fehlermeldungen, bei denen keine weitere Aktion mehr möglich ist, hilft es möglicherweise unter **Allgemein** in der Menüleiste auf **Neuladen** zu drücken (STRG+R)
+
+### Bekannte Probleme:
+- Exporte einer großen Anzahl an Messugen (d.h. >> 100) dauern relativ lange, ausgenommen ist der Export der Datenbank
+- Einstellungen der angezeigten Spalten werden in der Datenbank hinterlegt, d.h. ein ändern der Datenbank erfordert auch das neue Einstellen der angezeigten Spalten
+- Aktuell keine Speicherung der Spaltenreihenfolge möglich
+- Ungefilterte Massenauswahl in der Tabelle (d.h. >> 1000) führt zu langen Wartezeiten:
+  - Beispiel: Auswahl von 4000 Messugen bremst System ca. 30sec
+- Feld **createdAt** wird bei jedem Speichern geupdated
+`;
+  const ref = useRef(null);
   return (
     <div>
       <h1>Arbeitsplatz-Schallimmissions-Verwaltung</h1>
-      <Card title="Hinweise">
-    <p className="m-0">
-      <ul>
-        <li>Auf Menü in der Taskleite clicken</li>
-        <li>Im Menü auf "Datenbank auswählen" drücken</li>
-        <li>Im Dialog "Neue Datenbank erstellen" wählen</li>
-        <li>Datenbank laden anclicken</li>
-      </ul>
-      <ul>
-        <li>Exporte einer großen Anzahl an Messugen ({">>"}100) dauern relativ lange, ausgenommen ist der Export der Datenbank</li>
-        <li>Einstellungen der angezeigten Spalten werden in der Datenbank hinterlegt, d.h. ein ändern der Datenbank erfordert auch das neue Einstellen der angezeigten Spalten</li>
-        <li>Aktuell keine Speicherung der Spaltenreihenfolge möglich</li>
-        <li>...</li>
-
-      </ul>
-    </p>
-</Card>
-      <div>
+      <Panel ref={ref} header="Hinweise" toggleable collapsed={!databaseFile}>
+        {databaseFile && (
+          <p>
+            Pfad zur aktuell ausgewählten Datenbank: <br /> {databaseFile}
+          </p>
+        )}
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+      </Panel>
+      <div className="p-4">
         {/* <Button
           label={databaseFile ? 'Datenbank wechseln' : 'Datenbank erstellen'}
           onClick={() => setShowChangeDatabase(true)}
@@ -135,27 +147,22 @@ function MainView() {
           onClick={selectFile}
           label="Datenbank-Datei wählen"
         /> */}
+
         {databaseFile && (
-          <p>
-            Pfad zur aktuell ausgewählten Datenbank: <br /> {databaseFile}
-          </p>
+          <>
+            <TableView />
+            <TreeView />
+          </>
         )}
-        {/* <Button type="button" onClick={loadDatabse} label="Datenbank erstellen" /> */}
-        <TableView />
-        <TreeView />
+        {!databaseFile && <div>Bitte zuerst eine Datenbank erstellen</div>}
+
         <ImportDialog />
-        <EditDialog header="Eingabe" />
+        <EditDialog header={"Eingabe Arbeitsplatzmessung"} />
         <DumpDialog />
         <ConfirmDialog />
         <MessungenExportDialog />
         <ShowVersionDialog />
         <LoadingDialog />
-        {process.env.NODE_ENV === "development" &&
-        <ExperimentalDialog
-          showDialog={showExperimentalDialog}
-          setShowDialog={setShowExperimentalDialog}
-        />
-        }
         <DatenbankChangeDialog
           showDialog={showChangeDatabase}
           setShowDialog={setShowChangeDatabase}
@@ -215,18 +222,24 @@ export default function App() {
     );
   }
 
-
-
-  async function loadDatabse() {
-    if (databaseFile) {
-      const loadedDatabase = await getDatabase(
-        databaseFile, // 'heroes',
-        // "heroesdb" + dbSuffix, // we add a random timestamp in dev-mode to reset the database on each start
-        storage,
-      );
-      setDb(loadedDatabase);
+  useEffect(() => {
+    async function loadDatabase(databaseDirectory) {
+      console.log('In loadDatabase');
+      if (databaseFile) {
+        const loadedDatabase = await getDatabase(
+          databaseDirectory,
+          storage,
+        );
+        setDb(loadedDatabase);
+        console.log('Loaded Database');
+        toast.current?.show(ERFOLG_DATENBANKWECHSEL);
+      }
     }
-  }
+    loadDatabase(databaseFile);
+    return () => 0
+  }, [databaseFile]);
+
+
 
   const primeReactProviderValue = {
     filterMatchMode: {
@@ -255,7 +268,6 @@ export default function App() {
     },
   };
 
-
   return (
     <PrimeReactProvider value={primeReactProviderValue}>
       <ASIVContext.Provider
@@ -283,7 +295,6 @@ export default function App() {
           showLoadingDialog,
 
           databaseFile,
-          loadDatabse,
           setDatabaseFile,
           selectFile,
           toast,

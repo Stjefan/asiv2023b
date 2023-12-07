@@ -4,6 +4,7 @@ import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
 import { Toolbar } from 'primereact/toolbar';
+import { InputText } from 'primereact/inputtext';
 import { FilterMatchMode, FilterOperator } from 'primereact/api';
 import { ContextMenu } from 'primereact/contextmenu';
 import { Toast } from 'primereact/toast';
@@ -111,8 +112,20 @@ export function TableView() {
     setMessungenExport,
     showLoadingDialog,
     setShowLoadingDialog,
-    toast
+    toast,
   } = context!;
+
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+
+  const onGlobalFilterChange = (e) => {
+    const value = e.target.value;
+    let _filters = { ...filters };
+
+    _filters['global'].value = value;
+
+    setFilters(_filters);
+    setGlobalFilterValue(value);
+  };
 
   const onColumnToggle = (event: MultiSelectChangeEvent) => {
     const selectedColumns = event.value;
@@ -149,6 +162,11 @@ export function TableView() {
     return nodes;
   }
 
+  const clearFilter = () => {
+    setFilters(initFilters());
+    setGlobalFilterValue('');
+  };
+
   useEffect(() => {
     if (db) {
       const subscription = createDatabaseSubscription();
@@ -157,30 +175,60 @@ export function TableView() {
   }, [db]);
 
   const header = (
-    <MultiSelect
-      value={visibleColumns}
-      options={columns}
-      optionLabel="header"
-      onChange={onColumnToggle}
-      style={{ width: '300px' }}
-      display="chip"
-    />
+    <>
+      <div className="grid">
+        <MultiSelect
+          value={visibleColumns}
+          options={columns}
+          optionLabel="header"
+          onChange={onColumnToggle}
+          style={{ width: '300px' }}
+          display="chip"
+        />
+
+        <Button
+          label="Einstellungen speichern"
+          icon="pi pi-pencil"
+          onClick={() => saveSettings(visibleColumns)}
+        />
+        <Button
+          label="Einstellungen laden"
+          icon="pi pi-pencil"
+          onClick={loadSettings}
+        />
+      </div>
+      <div className="flex justify-content-end">
+        <Button
+          type="button"
+          icon="pi pi-filter-slash"
+          label="Filter löschen"
+          outlined
+          onClick={clearFilter}
+        />
+        <span className="p-input-icon-left">
+          <i className="pi pi-search" />
+          <InputText
+            value={globalFilterValue}
+            onChange={onGlobalFilterChange}
+            placeholder="Suche"
+          />
+        </span>
+      </div>
+    </>
   );
 
   const dateBodyTemplate = (rowData: any, additional: any, ...args: any) => {
     return formatDateForInput(rowData[additional.field]);
   };
 
-
   const cm = React.useRef<ContextMenu>(null);
-
 
   const menuModel = [
     {
       label: 'Details anzeigen',
       icon: 'pi pi-fw pi-search',
       command: () => {
-        setEdit(mouseRow)
+        setEdit(mouseRow);
         setDialogEdit(true);
       },
     },
@@ -192,10 +240,9 @@ export function TableView() {
         // archiviereSingle()
         confirmDialog({
           message: `Soll die Messungen zum Arbeitsplatz wirklich archiviert werden? Dies kann nicht rückgängig gemacht werden.`,
-            header: 'Bestätigung erforderlich',
-          accept: () => archivereSelected(mouseRow.id)
-        })
-
+          header: 'Bestätigung erforderlich',
+          accept: () => archivereSelected(mouseRow.id),
+        });
       },
     },
   ];
@@ -215,43 +262,39 @@ export function TableView() {
 
   const leftToolbarTemplate = () => {
     return (
-      <div className="flex flex-wrap gap-2">
-        <Button
-          label="Neu"
-          icon="pi pi-plus"
-          severity="success"
-          onClick={() => {
-            setEdit(null)
-            setDialogEdit(true)}
-          }
-        />
-        <Button
-          label="Archivieren"
-          icon="pi pi-trash"
-          severity="danger"
-          onClick={() => archivereSelected(messungenExport.map((i) => i.id))}
-          disabled={!messungenExport || !messungenExport.length}
-        />
-        <br/>
-        <Button type="button" icon="pi pi-filter-slash" label="Filter löschen" outlined onClick={clearFilter} />
-        <br/>
-        <Button
-          label="Einstellungen speichern"
-          icon="pi pi-pencil"
-          onClick={() => saveSettings(visibleColumns)}
-        />
-        <Button
-          label="Einstellungen laden"
-          icon="pi pi-pencil"
-          onClick={loadSettings}
-        />
+      <div className="grid">
+        <div className="col-4">
+          <Button
+            label="Neue Schallmessung anlegen"
+            icon="pi pi-plus"
+            severity="success"
+            onClick={() => {
+              setEdit(null);
+              setDialogEdit(true);
+            }}
+          />
+          <Button
+            label="Ausgewählte Messungen archivieren"
+            severity="secondary"
+            onClick={() => archivereSelected(messungenExport.map((i) => i.id))}
+            disabled={!messungenExport || !messungenExport.length}
+          />
+        </div>
 
-
-        {process.env.NODE_ENV === "development" && (<>
-        <br/>
-        <Button label="Insert many (1000)" onClick={() => insertMany(100)} />
-        <Button label="Insert many (5000)" onClick={() => insertMany(5000)} />
-        </>)}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="col-4">
+            <div className="grid">
+              <Button
+                label="Insert many (1000)"
+                onClick={() => insertMany(100)}
+              />
+              <Button
+                label="Insert many (5000)"
+                onClick={() => insertMany(5000)}
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -266,26 +309,28 @@ export function TableView() {
 
   async function loadSettings() {
     try {
-    const localDoc = (
-      await db.getLocal(
-        'orderedSelectedColumns', // id
-      )
-    ).toJSON();
-    // const orderedSelectedColumns = columns.filter((col) =>
-    // localDoc.some(
-    //       (sCol: { field: string }) => sCol.field === col.field
-    //     )
-    //   );
-    console.log(localDoc);
-    const orderedSelectedColumns = columns.filter((col) =>
-      localDoc.data.some((sCol: { field: string }) => sCol.field === col.field),
-    );
+      const localDoc = (
+        await db.getLocal(
+          'orderedSelectedColumns', // id
+        )
+      ).toJSON();
+      // const orderedSelectedColumns = columns.filter((col) =>
+      // localDoc.some(
+      //       (sCol: { field: string }) => sCol.field === col.field
+      //     )
+      //   );
+      console.log("Settings:", localDoc);
+      const orderedSelectedColumns = columns.filter((col) =>
+        localDoc.data.some(
+          (sCol: { field: string }) => sCol.field === col.field,
+        ),
+      );
 
-    setVisibleColumns(orderedSelectedColumns);
-  } catch(ex) {
-    console.error(ex)
-    toast.current?.show(FEHLER_SETTINGS)
-  }
+      setVisibleColumns(orderedSelectedColumns);
+    } catch (ex) {
+      console.error(ex);
+      toast.current?.show(FEHLER_SETTINGS);
+    }
   }
 
   async function archivereSelected(ids: string[]) {
@@ -306,7 +351,7 @@ export function TableView() {
 
   const rightToolbarTemplate = () => {
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="grid">
         <Button
           label="Import"
           icon="pi pi-upload"
@@ -329,38 +374,38 @@ export function TableView() {
     );
   };
 
-  const clearFilter = () => {
-    setFilters(initFilters());
-  };
-  function  initFilters() {
-    return arrayToObject(columns, 'field', (arg) => {
-    if (arg.type == 'date') {
-      return {
-        operator: FilterOperator.AND,
-        constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
-      };
-    }
-    if (arg.type == 'numeric') {
-      return {
-        operator: FilterOperator.AND,
-        constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-      };
-    }
-    if (arg.type == 'boolean') {
-      return {
-        operator: FilterOperator.AND,
-        constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-      };
-    }
+  function initFilters() {
     return {
-      operator: FilterOperator.AND,
-      constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+      ...arrayToObject(columns, 'field', (arg) => {
+        if (arg.type === 'date') {
+          return {
+            operator: FilterOperator.AND,
+            constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
+          };
+        }
+        if (arg.type === 'numeric') {
+          return {
+            operator: FilterOperator.AND,
+            constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+          };
+        }
+        if (arg.type === 'boolean') {
+          return {
+            operator: FilterOperator.AND,
+            constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+          };
+        }
+        return {
+          operator: FilterOperator.AND,
+          constraints: [
+            { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+          ],
+        };
+      }),
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
-    })
   }
-  const [filters, setFilters] = useState(
-    initFilters()
-  );
+  const [filters, setFilters] = useState(initFilters());
 
   const dateFilterTemplate = (options) => {
     return (
@@ -384,18 +429,19 @@ export function TableView() {
     );
   };
 
-  const [mouseRow, setMouseRow] = useState(null)
+  const [mouseRow, setMouseRow] = useState(null);
 
   return (
-    <div>
+    <div className="">
       <ContextMenu model={menuModel} ref={cm} />
 
       <Toolbar
-        className="mb-4"
+        className="grid"
         start={leftToolbarTemplate}
         end={rightToolbarTemplate}
       />
       <DataTable
+        globalFilterFields={['arbeitsplatznummer']}
         value={products}
         header={header}
         selectionMode="multiple"
@@ -405,9 +451,8 @@ export function TableView() {
         onContextMenu={(e) => {
           // Entscheidung ob Array oder nicht
           cm.current.show(e.originalEvent);
-
         }}
-        onRowMouseEnter={e => setMouseRow(e.data)}
+        onRowMouseEnter={(e) => setMouseRow(e.data)}
         resizableColumns
         reorderableColumns
         paginator
@@ -432,7 +477,7 @@ export function TableView() {
               />
             );
           }
-          if (col.type == 'boolean') {
+          if (col.type === 'boolean') {
             return (
               <Column
                 key={col.field}
